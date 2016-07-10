@@ -1,7 +1,5 @@
 import requests
 
-from abc import ABCMeta
-from abc import abstractmethod
 from enum import Enum
 from datetime import datetime
 
@@ -47,11 +45,14 @@ class Authentication(object):
 
     @property
     def accessToken(self):
+        if self.isExpired:
+            self.refresh()
+
         return self._accessToken
 
     @property
     def tokenType(self):
-        return self._tokenType
+        return self._tokenType.capitalize()
 
     @property
     def expires(self):
@@ -65,8 +66,14 @@ class Authentication(object):
     def refreshToken(self):
         return self._refreshToken
 
+    @property
     def isExpired(self):
         return self.expires < datetime.now()
+
+    @property
+    def headers(self):
+        return {'Authorization': '%s %s' % (self.tokenType, self.accessToken)}
+
 
 
 class AuthenticationProvider(object):
@@ -114,7 +121,7 @@ class AuthenticationProvider(object):
     def _refreshRequest(self, refreshToken, clientId=None, clientSecret=None):
         clientId = self.clientId if clientId is None else clientId
         clientSecret = self.clientSecret if clientSecret is None else clientSecret
-        print(refreshToken)
+
         url = _URL
         data = {
             'grant_type': GrantType.refreshToken.value,
@@ -123,9 +130,7 @@ class AuthenticationProvider(object):
             'refresh_token': refreshToken}
 
         response = requests.post(url, data=data)
-
-        if response.status_code != 200:
-            raise_from_respose(response)
+        raise_from_respose(response)
 
         dicResponse = response.json()
         dicResponse['refresh_token'] = refreshToken
@@ -146,9 +151,7 @@ class AuthenticationProvider(object):
             'code': code}
 
         response = requests.post(url, data=data)
-
-        if response.status_code != 200:
-            raise_from_respose(response)
+        raise_from_respose(response)
 
         return Authentication(response=response)
 
@@ -166,9 +169,7 @@ class AuthenticationProvider(object):
             'code': pin}
 
         response = requests.post(url, data=data)
-
-        if response.status_code != 200:
-            raise_from_respose(response)
+        raise_from_respose(response)
 
         return Authentication(response=response)
 
@@ -183,8 +184,6 @@ class AuthenticationProvider(object):
             'client_secret': clientSecret}
 
         response = requests.post(url, data=data)
-
-        if response.status_code != 200:
-            raise_from_respose(response)
+        raise_from_respose(response)
 
         return Authentication(response=response)
