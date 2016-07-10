@@ -10,12 +10,53 @@ Anipy is a python library that wraps and organize the [Anilist] rest api into mo
 
   * [Installation](#installation)
   * [Usage](#usage)
+    * [Authentication](#authentication)
+    * [Resources](#resources)
   * [Roadmap](#roadmap)
 
 
 ## Installation 
 
 ## Usage
+
+I've tried to keep the developer interface as simple as possible.
+
+### Authentication
+
+Before you can access any Anilist resource you have to get authenticated. Once you have [created a client] you must configure ```auth.AuthenticationProvider``` class with your credentials.
+
+Now you can get authenticated with any of the available [grant types]. Aditionaly, Anipy have a ```GrantType.refreshToken``` in case you have saved a refresh token from a previous authentication. *Note that only code and pin authentication gives you a refresh token.* 
+
+
+
+```python
+from anipy.auth import AuthenticationProvider
+from anipy.auth import Authentication
+from anipy.auth import GrantType
+
+AuthenticationProvider.config('your-client-id', 'your-client-secret', 'your-redirect-uri')
+
+auth = Authentication.provider(GrantType.clientCredentials).authenticate()
+
+auth = Authentication.provider(GrantType.authorizationCode).authenticate('code')
+
+auth = Authentication.provider(GrantType.authorizationPin).authenticate('pin')
+
+# Now you can save the refresh token
+refresh_token = auth.refreshToken
+
+auth = Authentication.provider(GrantType.refreshToken).authenticate(auth.refreshToken)
+```
+
+Authentication expires after one hour and will refresh automatically, nevertheless you can do it manually at any time, ie.:
+
+```python
+if auth.isExpired:
+    auth.refresh()
+
+```
+
+### Resources
 
 ## Roadmap
 
@@ -80,3 +121,6 @@ Here is a sumary of the project state.
 [Anilist]: http://Anilist.co
 [official docs]: https://anilist-api.readthedocs.io
 [Josh Star]: https://github.com/joshstar
+
+[created a client]: https://anilist-api.readthedocs.io/en/latest/introduction.html#creating-a-client
+[grant types]:https://anilist-api.readthedocs.io/en/latest/authentication.html#which-grant-type-to-use
