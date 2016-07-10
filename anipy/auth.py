@@ -1,6 +1,4 @@
 import requests
-import json
-import logging
 
 from abc import ABCMeta
 from abc import abstractmethod
