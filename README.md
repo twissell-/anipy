@@ -63,7 +63,7 @@ if auth.isExpired:
 
 ### Resources
 
-Resources are one of the most important parts of the library. The are in charge of go an get the data from the Anilist API. Each domain class have a resource, you can compare it to *Data Access Objects*.
+Resources are one of the most important parts of the library. They are in charge of go an get the data from the Anilist API. Each domain class have a resource, you can compare them to *Data Access Objects*. All resouces are **Singletons**.
 
 In order to keep things simple you can access the resource from class it serves
 
