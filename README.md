@@ -15,7 +15,7 @@ Anipy is a python library that wraps and organize the [Anilist] rest api into mo
   * [Roadmap](#roadmap)
 
 
-## Installation 
+## Installation
 
 ## Usage
 
@@ -25,9 +25,7 @@ I've tried to keep the developer interface as simple as possible.
 
 Before you can access any Anilist resource you have to get authenticated. Once you have [created a client] you must configure ```auth.AuthenticationProvider``` class with your credentials.
 
-Now you can get authenticated with any of the available [grant types]. Aditionaly, Anipy have a ```GrantType.refreshToken``` in case you have saved a refresh token from a previous authentication. *Note that only code and pin authentication gives you a refresh token.* 
-
-
+Now you can get authenticated with any of the available [grant types]. Aditionaly, Anipy have a ```GrantType.refreshToken``` in case you have saved a refresh token from a previous authentication. *Note that only code and pin authentication gives you a refresh token.*
 
 ```python
 from anipy.auth import AuthenticationProvider
@@ -36,16 +34,16 @@ from anipy.auth import GrantType
 
 AuthenticationProvider.config('your-client-id', 'your-client-secret', 'your-redirect-uri')
 
-auth = Authentication.provider(GrantType.clientCredentials).authenticate()
-
-auth = Authentication.provider(GrantType.authorizationCode).authenticate('code')
-
-auth = Authentication.provider(GrantType.authorizationPin).authenticate('pin')
+auth = Authentication.fromCredentials()
+# or
+auth = Authentication.fromCode('code')
+# or
+auth = Authentication.fromPin('pin')
 
 # Now you can save the refresh token
 refresh_token = auth.refreshToken
 
-auth = Authentication.provider(GrantType.refreshToken).authenticate(auth.refreshToken)
+auth = Authentication.fromRefreshToken(refresh_token)
 ```
 
 Authentication expires after one hour and will refresh automatically, nevertheless you can do it manually at any time, ie.:
@@ -62,60 +60,70 @@ if auth.isExpired:
 
 Here is a sumary of the project state.
 
+### Next Release: 0.1
+
   - [x] **Authentication**
     - [x] Authorization Code
     - [x] Authorization Pin
     - [x] Client Credentials
-  - [ ] **User**
-    - [x] User Basics
-    - [ ] Activity
-    - [ ] Notifications
-    - [ ] Followers & Following
-    - [ ] Follow/Unfollow
-    - [ ] Favourites
-    - [ ] Airing
-    - [ ] Search
+  - [x] **User**
+    - [x] Basics
   - [ ] **User Lists**
     - [ ] Animelist
     - [ ] Mangalist
     - [ ] Remove entry
     - [ ] List Scores
   - [ ] **Anime**
-    - [ ] Characters / Staff
+    - [ ] Basics
     - [ ] Airing
-    - [ ] Browse
-    - [ ] Favourite 
     - [ ] Search
   - [ ] **Manga**
-    - [ ] Characters / Staff
-    - [ ] Browse
-    - [ ] Favourite
+    - [ ] Basics
     - [ ] Search
-  - [ ] **Characters**
-    - [ ] Favourite
-    - [ ] Search
-  - [ ] **Staff**
-    - [ ] Favourite
-    - [ ] Search
-  - [ ] **Studio**
-    - [ ] Search
-  - [ ] **Reviews**
-    - [ ] Review
-    - [ ] Anime/Manga Reviews
-    - [ ] User Reviews
-    - [ ] Rate Review
-    - [ ] Remove Review
-  - [ ] **Forum**
-    - [ ] Feeds
-    - [ ] Thread
-    - [ ] Create thread
-    - [ ] Edit thread
-    - [ ] Remove thread
-    - [ ] Thread subscribe
-    - [ ] Create comment
-    - [ ] Edit comment
-    - [ ] Remove comment
-    - [ ] Search
+
+### Future Features
+
+  - **User**
+    - Activity
+    - Followers & Following
+    - Follow/Unfollow
+    - Favourites
+    - Notifications
+    - Airing
+    - Search
+  - **Anime**
+    - Characters / Staff
+    - Browse
+    - Favourite
+  - **Manga**
+    - Characters / Staff
+    - Browse
+    - Favourite
+  - **Characters**
+    - Favourite
+    - Search
+  - **Staff**
+    - Favourite
+    - Search
+  - **Studio**
+    - Search
+  - **Reviews**
+    - Review
+    - Anime/Manga Reviews
+    - User Reviews
+    - Rate Review
+    - Remove Review
+  - **Forum**
+    - Feeds
+    - Thread
+    - Create thread
+    - Edit thread
+    - Remove thread
+    - Thread subscribe
+    - Create comment
+    - Edit comment
+    - Remove comment
+    - Search
 
 
 [Anilist]: http://Anilist.co

@@ -16,6 +16,9 @@ class InvalidRequestException(AniException):
 class UnauthorizedException(AniException):
     """Wraps Anilist 'unauthorized' error."""
 
+class NotAuthenticatedException(AniException):
+    """Some operation that needs authentication was executed without it."""
+
 def raise_from_respose(response):
     """Raise an exception acording the json data of the response"""
 
@@ -25,6 +28,7 @@ def raise_from_respose(response):
     if 400 > response.status_code or response.status_code >= 600:
         return
 
+    print(response.status_code)
     response = response.json()
 
     if response.get('error') == 'invalid_grant':
@@ -36,4 +40,5 @@ def raise_from_respose(response):
             raise UnauthorizedException()
         raise UnauthorizedException(response.get('error_description'))
     else:
+        print(response)
         raise AniException('%s %s' % (response.get('error'), response.get('error_description')))

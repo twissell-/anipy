@@ -1,16 +1,52 @@
 import requests
 
 from anipy.exception import raise_from_respose
+from anipy.core import Resource
+from anipy.animeList import AnimeListResource
+
+
+class UserResource(Resource):
+    """docstring for UserResource"""
+
+
+    def __init__(self):
+        super(UserResource, self).__init__()
+        self._url = self._baseUrl + 'user/'
+
+    def __new__(type):
+        if not '_instance' in type.__dict__:
+            type._instance = object.__new__(type)
+        return type._instance
+
+    def principal(self):
+        response = requests.get(self._url, headers=self._headers)
+        raise_from_respose(response)
+
+        return User.fromResponse(response)
+
+    def byDisplayName(self, displayName):
+        url = self._url + displayName
+
+        response = requests.get(url, headers=self._headers)
+        raise_from_respose(response)
+
+        return User.fromResponse(response)
+
+    def byId(self, id_):
+        return self.byDisplayName(str(id_))
 
 
 class User(object):
     """docstring for User"""
+
+    _animeListResource = AnimeListResource()
+
     def __init__(self, dic=None, **kwargs):
         if not dic is None:
             kwargs = dic
 
         super(User, self).__init__()
-        self._id_ = kwargs.get('id', None)
+        self._id = kwargs.get('id', None)
         self._displayName = kwargs.get('displayName', None)
         self._animeTime = kwargs.get('animeTime', None)
         self._mangaChap = kwargs.get('mangaChap', None)
@@ -18,8 +54,8 @@ class User(object):
         self._listOrder = kwargs.get('listOrder', None)
         self._adultContent = kwargs.get('adultContent', None)
         self._following = kwargs.get('following', None)
-        self._imageUrlLg = kwargs.get('imageUrlLg', None)
-        self._imageUrlMd = kwargs.get('imageUrlMd', None)
+        self._imageUrlLge = kwargs.get('imageUrlLge', None)
+        self._imageUrlMed = kwargs.get('imageUrlMed', None)
         self._imageUrlBanner = kwargs.get('imageUrlBanner', None)
         self._titleLanguage = kwargs.get('titleLanguage', None)
         self._scoreType = kwargs.get('scoreType', None)
@@ -43,8 +79,8 @@ class User(object):
         userDic['listOrder'] = response.get('list_order', None)
         userDic['adultContent'] = response.get('adult_content', None)
         userDic['following'] = response.get('following', None)
-        userDic['imageUrlLg'] = response.get('image_url_lge', None)
-        userDic['imageUrlMd'] = response.get('image_url_med', None)
+        userDic['imageUrlLge'] = response.get('image_url_lge', None)
+        userDic['imageUrlMed'] = response.get('image_url_med', None)
         userDic['imageUrlBanner'] = response.get('image_url_banner', None)
         userDic['titleLanguage'] = response.get('title_language', None)
         userDic['scoreType'] = response.get('score_type', None)
@@ -57,16 +93,24 @@ class User(object):
         return cls(dic=userDic)
 
     @classmethod
-    def resource(cls, authentication=None):
-        return UserResource(authentication)
+    def resource(cls):
+        return UserResource()
+
+    @property
+    def lists(self):
+        return self._animeListResource.byUserId(self.id)
+
+    @property
+    def watching(self):
+        return self._animeListResource.watchingByUserId(self.id)
 
     @property
     def id(self):
-        return self._id_
+        return self._id
 
     @id.setter
     def id(self, id):
-        self._id_ = id
+        self._id = id
 
     @property
     def displayName(self):
@@ -125,20 +169,20 @@ class User(object):
         self._following = following
 
     @property
-    def imageUrlLg(self):
-        return self._imageUrlLg
+    def imageUrlLge(self):
+        return self._imageUrlLge
 
-    @imageUrlLg.setter
-    def imageUrlLg(self, imageUrlLg):
-        self._imageUrlLg = imageUrlLg
+    @imageUrlLge.setter
+    def imageUrlLge(self, imageUrlLge):
+        self._imageUrlLge = imageUrlLge
 
     @property
-    def imageUrlMd(self):
-        return self._imageUrlMd
+    def imageUrlMed(self):
+        return self._imageUrlMed
 
-    @imageUrlMd.setter
-    def imageUrlMd(self, imageUrlMd):
-        self._imageUrlMd = imageUrlMd
+    @imageUrlMed.setter
+    def imageUrlMed(self, imageUrlMed):
+        self._imageUrlMed = imageUrlMed
 
     @property
     def imageUrlBanner(self):
@@ -204,38 +248,3 @@ class User(object):
     def notifications(self, notifications):
         self._notifications = notifications
 
-
-class UserResource(object):
-    """docstring for UserResource"""
-
-    _URL = 'https://anilist.co/api/user'
-    _auth = None
-
-    def __init__(self, auth=None):
-        super(UserResource, self).__init__()
-        if  auth is None and self._auth is None:
-            raise ValueError('Invalid authentication: can not be None')
-
-        self._auth = auth
-
-    def __new__(type, auth):
-        if not '_instance' in type.__dict__:
-            type._instance = object.__new__(type)
-        return type._instance
-
-    def principal(self):
-        response = requests.get(self._URL, headers=self._auth.headers)
-        raise_from_respose(response)
-
-        return User.fromResponse(response)
-
-    def byDisplayName(self, displayName):
-        url = '%s/%s' % (self._URL, displayName)
-
-        response = requests.get(url, headers=self._auth.headers)
-        raise_from_respose(response)
-
-        return User.fromResponse(response)
-
-    def byId(self, id_):
-        return self.byDisplayName(str(id_))

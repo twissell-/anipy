@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='anipy',
-      version='0.1a0',
+      version='0.1a1',
       description='A python library for the Anilist.co API.',
       long_description=readme(),
       classifiers=[
