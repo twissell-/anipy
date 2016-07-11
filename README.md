@@ -17,6 +17,13 @@ Anipy is a python library that wraps and organize the [Anilist] rest api into mo
 
 ## Installation
 
+For now the only available versions are alphas. You can Instaled the las by:
+```bash
+$ git clone https://github.com/twissell-/anipy.git
+$ cd anipy
+$ python setup.py # Be sure using Python 3
+```
+
 ## Usage
 
 I've tried to keep the developer interface as simple as possible.
@@ -55,6 +62,28 @@ if auth.isExpired:
 ```
 
 ### Resources
+
+Resources are one of the most important parts of the library. The are in charge of go an get the data from the Anilist API. Each domain class have a resource, you can compare it to *Data Access Objects*.
+
+In order to keep things simple you can access the resource from class it serves
+
+```python
+# Current logged user
+user = User.resource().principal()
+# A user for his Id or Display Name
+user = User.resource().byId(3225)
+user = User.resource().byDisplayName('demo')
+```
+
+Some resources are injected in other classes also in order to keep things simple (ie. ```AnimeListResource```). So if you want to get de watching list of a user you can do:
+
+```python
+# The long way
+resource = AnimeListResource()
+watching_list = resource.byUserId(user.id)
+# Or the short way
+watching_list = user.watching
+```
 
 ## Roadmap
 
