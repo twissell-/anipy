@@ -17,3 +17,8 @@ print('id', user.id)
 print('displayName', user.displayName)
 for record in user.watching:
     print(record.anime.titleRomaji)
+
+
+from anipy import Authentication, AuthenticationProvider
+AuthenticationProvider.config('demo-vfxpa', 'mpnPS782wW47vwRMVOUQYJ6w0XszH', 'http://localhost:5000/ani/auth')
+auth = Authentication.fromRefreshToken('n1McU2cLdAplKjUaeBiDuEdwPiYno2r39rWk8DE4')

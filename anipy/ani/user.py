@@ -1,7 +1,37 @@
 import requests
 
-from anipy.resources.user import UserResource
-from anipy.resources.animeList import AnimeListResource
+from anipy.core import Resource
+from anipy.ani.list import AnimeListResource
+from anipy.exception import raise_from_respose
+
+class UserResource(Resource):
+    """docstring for UserResource"""
+
+    def __init__(self):
+        super(UserResource, self).__init__()
+        self._url = self._baseUrl + 'user/'
+
+    def __new__(type):
+        if not '_instance' in type.__dict__:
+            type._instance = object.__new__(type)
+        return type._instance
+
+    def principal(self):
+        response = requests.get(self._url, headers=self._headers)
+        raise_from_respose(response)
+
+        return User.fromResponse(response)
+
+    def byDisplayName(self, displayName):
+        url = self._url + displayName
+
+        response = requests.get(url, headers=self._headers)
+        raise_from_respose(response)
+
+        return User.fromResponse(response)
+
+    def byId(self, id_):
+        return self.byDisplayName(str(id_))
 
 
 class User(object):
@@ -66,11 +96,27 @@ class User(object):
 
     @property
     def lists(self):
-        return self._animeListResource.byUserId(self.id)
+        return self._animeListResource.allByUserId(self.id)
 
     @property
     def watching(self):
         return self._animeListResource.watchingByUserId(self.id)
+
+    @property
+    def completed(self):
+        return self._animeListResource.completedByUserId(self.id)
+
+    @property
+    def noHold(self):
+        return self._animeListResource.onHoldByUserId(self.id)
+
+    @property
+    def dropped(self):
+        return self._animeListResource.droppedgByUserId(self.id)
+
+    @property
+    def planToWatch(self):
+        return self._animeListResource.planToWatchByUserId(self.id)
 
     @property
     def id(self):

@@ -120,6 +120,9 @@ Here is a sumary of the project state.
     - Notifications
     - Airing
     - Search
+  - **User Lists**
+    - Custom Lists
+    - Stars and Smiley score
   - **Anime**
     - Characters / Staff
     - Browse

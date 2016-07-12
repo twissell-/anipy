@@ -1,5 +1,5 @@
-import json
 from requests import Response
+
 
 class AniException(Exception):
     """There was an ambiguous exception that occurred.
