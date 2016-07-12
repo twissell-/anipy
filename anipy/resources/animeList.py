@@ -1,7 +1,7 @@
 import requests
 
 from anipy.core import Resource
-from anipy.model import ListItem
+from anipy.model.list import ListEntry
 from anipy.exception import raise_from_respose
 
 
@@ -24,7 +24,7 @@ class AnimeListResource(Resource):
         return self._byUserIdOrDisplayName(id_, raw).json()
 
     def watchingByUserId(self, id_):
-        return list(ListItem.fromResponse(item) for item in self._byUserIdOrDisplayName(id_).json()['lists']['watching'])
+        return list(ListEntry.fromResponse(item) for item in self._byUserIdOrDisplayName(id_).json()['lists']['watching'])
 
     def _byUserIdOrDisplayName(self, displayName, raw=False):
         url = self._url % str(displayName)

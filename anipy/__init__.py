@@ -1,0 +1,1 @@
+from anipy.resources.animeList import AnimeListResource
