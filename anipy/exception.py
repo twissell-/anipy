@@ -1,5 +1,9 @@
-from requests import Response
+import logging
 
+from requests import Response
+from json.decoder import JSONDecodeError
+
+logger = logging.getLogger(__name__)
 
 class AniException(Exception):
     """There was an ambiguous exception that occurred.
@@ -19,6 +23,9 @@ class UnauthorizedException(AniException):
 class NotAuthenticatedException(AniException):
     """Some operation that needs authentication was executed without it."""
 
+class InternalServerError(AniException):
+    """Anilist.co return a 500 Response and a html. No extra information was given."""
+
 def raise_from_respose(response):
     """Raise an exception acording the json data of the response"""
 
@@ -28,8 +35,14 @@ def raise_from_respose(response):
     if 400 > response.status_code or response.status_code >= 600:
         return
 
-    print(response.status_code)
-    response = response.json()
+    if response.status_code == 500:
+        raise InternalServerError('Anilist.co return a 500 Response and a html. No extra information was given.')
+
+    try:
+        response = response.json()
+    except JSONDecodeError as e:
+        logger.error('There was an error decoding the response', exc_info=True)
+        return
 
     if response.get('error') == 'invalid_grant':
         raise InvalidGrantException(response.get('error_description'))
@@ -40,5 +53,5 @@ def raise_from_respose(response):
             raise UnauthorizedException()
         raise UnauthorizedException(response.get('error_description'))
     else:
-        print(response)
-        raise AniException('%s %s' % (response.get('error'), response.get('error_description')))
+        logger.warning('Unhandled error: ' + str(response))
+        raise AniException()

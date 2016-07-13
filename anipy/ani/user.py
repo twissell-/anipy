@@ -1,8 +1,10 @@
 import requests
 
 from anipy.core import Resource
-from anipy.ani.list import AnimeListResource
+from anipy.core import Entity
+from anipy.ani.animeList import AnimeListResource
 from anipy.exception import raise_from_respose
+
 
 class UserResource(Resource):
     """docstring for UserResource"""
@@ -34,16 +36,13 @@ class UserResource(Resource):
         return self.byDisplayName(str(id_))
 
 
-class User(object):
+class User(Entity):
     """docstring for User"""
 
     _animeListResource = AnimeListResource()
 
-    def __init__(self, dic=None, **kwargs):
-        if not dic is None:
-            kwargs = dic
-
-        super(User, self).__init__()
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
         self._id = kwargs.get('id', None)
         self._displayName = kwargs.get('displayName', None)
         self._animeTime = kwargs.get('animeTime', None)
@@ -62,33 +61,6 @@ class User(object):
         self._advancedRating = kwargs.get('advancedRating', None)
         self._advancedRatingNames = kwargs.get('advancedRatingNames', None)
         self._notifications = kwargs.get('notifications', None)
-
-    @classmethod
-    def fromResponse(cls, response):
-        if isinstance(response, requests.Response):
-            response = response.json()
-        userDic = {}
-
-        userDic['id'] = response.get('id', None)
-        userDic['displayName'] = response.get('display_name', None)
-        userDic['animeTime'] = response.get('anime_time', None)
-        userDic['mangaChap'] = response.get('manga_chap', None)
-        userDic['about'] = response.get('about', None)
-        userDic['listOrder'] = response.get('list_order', None)
-        userDic['adultContent'] = response.get('adult_content', None)
-        userDic['following'] = response.get('following', None)
-        userDic['imageUrlLge'] = response.get('image_url_lge', None)
-        userDic['imageUrlMed'] = response.get('image_url_med', None)
-        userDic['imageUrlBanner'] = response.get('image_url_banner', None)
-        userDic['titleLanguage'] = response.get('title_language', None)
-        userDic['scoreType'] = response.get('score_type', None)
-        userDic['customListAnime'] = response.get('custom_list_anime', None)
-        userDic['customListManga'] = response.get('custom_list_manga', None)
-        userDic['advancedRating'] = response.get('advanced_rating', None)
-        userDic['advancedRatingNames'] = response.get('advanced_rating_names', None)
-        userDic['notifications'] = response.get('notifications', None)
-
-        return cls(dic=userDic)
 
     @classmethod
     def resource(cls):

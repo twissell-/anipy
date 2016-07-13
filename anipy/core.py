@@ -1,25 +1,59 @@
 import requests
+import logging
 
 from enum import Enum
 from datetime import datetime
+from abc import ABCMeta
 
+from anipy.utils import underscore_to_camelcase
 from anipy.exception import raise_from_respose
 from anipy.exception import NotAuthenticatedException
+
+logger = logging.getLogger(__name__)
 
 
 class Resource(object):
     """Abstract resource class. 
 
     Works as a base class for all other resources, keeping the generic and re-usable functionality"""
+
+    _baseUrl = 'https://anilist.co/api/'
+
     def __init__(self):
         super(Resource, self).__init__()
-        self._baseUrl = 'https://anilist.co/api/'
 
     @property
     def _headers(self):
         auth = AuthenticationProvider.currentAuth()
 
-        return {'Authorization': '%s %s' % (auth.tokenType, auth.accessToken)}
+        return {
+            'Authorization': '%s %s' % (auth.tokenType, auth.accessToken),
+            'Content-Type': 'application/x-www-form-urlencoded'}
+
+
+class Entity(metaclass=ABCMeta):
+    """Abstract base class for al classes that are mapped from/to an anilist response."""
+
+    __composite__ = {}
+
+    def __init__(self, **kwargs):
+        super(Entity, self).__init__()
+
+    @classmethod
+    def fromResponse(cls, response):
+
+        if isinstance(response, requests.Response):
+            response = response.json()
+        logger.debug(response)
+        dic = {}
+
+        for k in response:
+            if k in cls.__composite__:
+                dic[underscore_to_camelcase(k)] = cls.__composite__[k].fromResponse(response.get(k))
+            else:
+                dic[underscore_to_camelcase(k)] = response.get(k, None)
+
+        return cls(**dic)
 
 
 class GrantType(Enum):
@@ -95,7 +129,7 @@ class AuthenticationProvider(object):
         dicResponse = response.json()
         dicResponse['refresh_token'] = refreshToken
 
-        auth = Authentication(dic=dicResponse)
+        auth = Authentication(**dicResponse)
         self._currentAuth = auth
 
         return auth
@@ -115,7 +149,7 @@ class AuthenticationProvider(object):
         response = requests.post(self._URL, data=data)
         raise_from_respose(response)
 
-        auth = Authentication(response=response)
+        auth = Authentication(**response.json())
         self._currentAuth = auth
 
         return auth
@@ -136,7 +170,7 @@ class AuthenticationProvider(object):
         response = requests.post(self._URL, data=data)
         raise_from_respose(response)
 
-        auth = Authentication(response=response)
+        auth = Authentication(**response.json())
         self._currentAuth = auth
 
         return auth
@@ -153,7 +187,7 @@ class AuthenticationProvider(object):
         response = requests.post(self._URL, data=data)
         raise_from_respose(response)
 
-        auth = Authentication(response=response)
+        auth = Authentication(**response.json())
         self._currentAuth = auth
 
         return auth
@@ -162,14 +196,8 @@ class AuthenticationProvider(object):
 class Authentication(object):
     """Represents a Anilist authentication response """
 
-    def __init__(self, response=None, dic=None, **kwargs):
+    def __init__(self, **kwargs):
         super(Authentication, self).__init__()
-
-        if not response is None:
-            kwargs = response.json()
-        elif not dic is None:
-            kwargs = dic
-
         self._accessToken = kwargs.get('access_token', None)
         self._tokenType = kwargs.get('token_type', None)
         self._expiresIn = kwargs.get('expires_in', None)
