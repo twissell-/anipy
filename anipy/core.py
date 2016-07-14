@@ -1,4 +1,6 @@
 import requests
+import json
+import urllib3
 import logging
 
 from enum import Enum
@@ -6,6 +8,8 @@ from datetime import datetime
 from abc import ABCMeta
 
 from anipy.utils import underscore_to_camelcase
+from anipy.utils import dic_to_json
+from anipy.utils import response_to_dic
 from anipy.exception import raise_from_respose
 from anipy.exception import NotAuthenticatedException
 
@@ -13,14 +17,17 @@ logger = logging.getLogger(__name__)
 
 
 class Resource(object):
-    """Abstract resource class. 
+    """
+    Abstract resource class. 
 
-    Works as a base class for all other resources, keeping the generic and re-usable functionality"""
+    Works as a base class for all other resources, keeping the generic and re-usable functionality
+    """
 
-    _baseUrl = 'https://anilist.co/api/'
+    _URL = 'https://anilist.co'
 
     def __init__(self):
         super(Resource, self).__init__()
+        self._pool = urllib3.connectionpool.connection_from_url(Resource._URL, maxsize=5)
 
     @property
     def _headers(self):
@@ -28,7 +35,37 @@ class Resource(object):
 
         return {
             'Authorization': '%s %s' % (auth.tokenType, auth.accessToken),
-            'Content-Type': 'application/x-www-form-urlencoded'}
+            'Content-Type': 'application/json'}
+
+    def request(self, method, endpoint=None, data=None, headers=None):
+        headers = self._headers if headers is None else headers
+        endpoint = self._ENDPOINT if endpoint is None else endpoint
+
+        logger.debug('Resource request: %s %s' % (method, str(data)))
+        logger.debug('Resource request headers: %s' % ((headers)))
+
+        response = self._pool.request(
+            method,
+            endpoint,
+            fields=data,
+            headers=headers)
+        raise_from_respose(response)
+
+        response = response_to_dic(response)
+        logger.debug('Resource response: ' + str(response))
+        return response_to_dic(response)
+
+    def get(self, endpoint=None, data=None):
+        return self.request('GET', data)
+
+    def post(self, endpoint=None, data=None):
+        return self.request('POST', data)
+
+    def put(self, endpoint=None, data=None):
+        return self.request('PUT', data)
+
+    def delete(self, endpoint=None, data=None):
+        return self.request('DELETE', data)
 
 
 class Entity(metaclass=ABCMeta):
@@ -65,14 +102,20 @@ class GrantType(Enum):
 
 
 class AuthenticationProvider(object):
-    """AuthenticationProvider(GrantType) -> Authentication.
+    """
+    (Singleton) Builder for the Authentication class
+    """
 
-    (Singleton) Builder for the Authentication class"""
+    _URL = 'https://anilist.co'
+    _ENDPOINT = '/api/auth/access_token'
+    _pool = urllib3.connectionpool.connection_from_url(_URL)
 
     clientId = None
     clientSecret = None
     redirectUri = None
-    _URL = 'https://anilist.co/api/auth/access_token'
+
+    _logger = logging.getLogger(__name__ + '.AuthenticationProvider')
+
 
     def __new__(type, grantType):
         if not '_instance' in type.__dict__:
@@ -113,6 +156,24 @@ class AuthenticationProvider(object):
     def refresh(cls, refreshToken, clientId=None, clientSecret=None):
         return cls._instance._refreshRequest(refreshToken, clientId, clientSecret)
 
+    def _authRequest(self, data ):
+        self._logger.debug('Auth request: ' + str(data))
+        response = self._pool.request(
+            'POST',
+            self._ENDPOINT,
+            fields=data)
+        raise_from_respose(response)
+
+        response = response_to_dic(response)
+        if data.get('refresh_token') is not None:
+            response['refresh_token'] = data.get('refresh_token')
+
+        auth = Authentication(**response)
+        self._currentAuth = auth
+
+        self._logger.debug('Auth response: ' + str(response))
+        return auth
+
     def _refreshRequest(self, refreshToken, clientId=None, clientSecret=None):
         clientId = self.clientId if clientId is None else clientId
         clientSecret = self.clientSecret if clientSecret is None else clientSecret
@@ -123,16 +184,7 @@ class AuthenticationProvider(object):
             'client_secret': clientSecret,
             'refresh_token': refreshToken}
 
-        response = requests.post(self._URL, data=data)
-        raise_from_respose(response)
-
-        dicResponse = response.json()
-        dicResponse['refresh_token'] = refreshToken
-
-        auth = Authentication(**dicResponse)
-        self._currentAuth = auth
-
-        return auth
+        return self._authRequest(data)
 
     def _codeRequest(self, code, clientId=None, clientSecret=None, redirectUri=None):
         clientId = self.clientId if clientId is None else clientId
@@ -146,13 +198,7 @@ class AuthenticationProvider(object):
             'redirect_uri': redirectUri,
             'code': code}
 
-        response = requests.post(self._URL, data=data)
-        raise_from_respose(response)
-
-        auth = Authentication(**response.json())
-        self._currentAuth = auth
-
-        return auth
+        return self._authRequest(data)
 
 
     def _pinRequest(self, pin, clientId=None, clientSecret=None, redirectUri=None):
@@ -167,13 +213,7 @@ class AuthenticationProvider(object):
             'redirect_uri': redirectUri,
             'code': pin}
 
-        response = requests.post(self._URL, data=data)
-        raise_from_respose(response)
-
-        auth = Authentication(**response.json())
-        self._currentAuth = auth
-
-        return auth
+        return self._authRequest(data)
 
     def _clientCredentialsRequest(self, clientId=None, clientSecret=None):
         clientId = self.clientId if clientId is None else clientId
@@ -184,17 +224,13 @@ class AuthenticationProvider(object):
             'client_id': clientId,
             'client_secret': clientSecret}
 
-        response = requests.post(self._URL, data=data)
-        raise_from_respose(response)
-
-        auth = Authentication(**response.json())
-        self._currentAuth = auth
-
-        return auth
+        return self._authRequest(data)
 
 
 class Authentication(object):
-    """Represents a Anilist authentication response """
+    """
+    Represents a Anilist authentication response.
+    """
 
     def __init__(self, **kwargs):
         super(Authentication, self).__init__()

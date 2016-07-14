@@ -25,7 +25,7 @@ setup(name='anipy',
       license='MIT',
       packages=['anipy'],
       install_requires=[
-          'requests',
+          'urllib3',
       ],
       test_suite='nose.collector',
       tests_require=['nose'],

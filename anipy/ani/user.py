@@ -1,5 +1,3 @@
-import requests
-
 from anipy.core import Resource
 from anipy.core import Entity
 from anipy.ani.animeList import AnimeListResource
@@ -9,9 +7,10 @@ from anipy.exception import raise_from_respose
 class UserResource(Resource):
     """docstring for UserResource"""
 
+    _ENDPOINT = '/api/user/'
+
     def __init__(self):
         super(UserResource, self).__init__()
-        self._url = self._baseUrl + 'user/'
 
     def __new__(type):
         if not '_instance' in type.__dict__:
@@ -19,18 +18,10 @@ class UserResource(Resource):
         return type._instance
 
     def principal(self):
-        response = requests.get(self._url, headers=self._headers)
-        raise_from_respose(response)
-
-        return User.fromResponse(response)
+        return User.fromResponse(self.get())
 
     def byDisplayName(self, displayName):
-        url = self._url + displayName
-
-        response = requests.get(url, headers=self._headers)
-        raise_from_respose(response)
-
-        return User.fromResponse(response)
+        return User.fromResponse(self.get(endpoint=self._ENDPOINT + displayName))
 
     def byId(self, id_):
         return self.byDisplayName(str(id_))

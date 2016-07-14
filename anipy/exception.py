@@ -1,6 +1,6 @@
 import logging
 
-from requests import Response
+from urllib3.response import HTTPResponse
 from json.decoder import JSONDecodeError
 
 logger = logging.getLogger(__name__)
@@ -29,13 +29,14 @@ class InternalServerError(AniException):
 def raise_from_respose(response):
     """Raise an exception acording the json data of the response"""
 
-    if not isinstance(response, Response):
-        raise ValueError('Response must be instance of requests.Response')
+    if not isinstance(response, HTTPResponse):
+        raise ValueError('Response must be instance of HTTPResponse intead of %s' % type(response))
 
-    if 400 > response.status_code or response.status_code >= 600:
+    if 400 > response.status or response.status >= 600:
         return
 
-    if response.status_code == 500:
+    print(response.data)
+    if response.status == 500 and 'text/html' in response.headers['content-type']:
         raise InternalServerError('Anilist.co return a 500 Response and a html. No extra information was given.')
 
     try:

@@ -1,5 +1,8 @@
 import requests
+import urllib3
+from urllib.parse import urlencode
 import logging
+import json
 
 from anipy.core import Resource
 from anipy.utils import underscore_to_camelcase
@@ -12,8 +15,8 @@ logger = logging.getLogger(__name__)
 class AnimeListResource(Resource):
     """docstring for AnimeListResource"""
 
-    _getUrl = Resource._baseUrl + 'user/%s/animelist/'
-    _postUrl = Resource._baseUrl + 'animelist/'
+    _getUrl = Resource._URL + '/api/user/%s/animelist/'
+    _ENDPOINT = Resource._URL + '/api/animelist/'
     
     _all_lists_key = 'lists'
     _watching_key = 'watching'
@@ -54,26 +57,30 @@ class AnimeListResource(Resource):
 
     def update(self, entry):
         data = {
-            'id': entry.recordId,
-            #'list_status': entry.listStatus.value,
-            #'score': entry.score,
-            #'score_raw': entry.scoreRaw,
+            'id': entry.anime.id,
+            'list_status': entry.listStatus.value,
+            'score': entry.score,
+            'score_raw': entry.scoreRaw,
             'episodes_watched': entry.episodesWatched,
-            #'rewatched': entry.rewatched,
-            #'notes': entry.notes
-            #'advanced_rating_scores': '0, 0, 0, 0, 0',
-            #'advanced_rating_scores': entry.advancedRatingScores,
-            #'custom_lists': [0, 0, 0, 0, 0],
-            #'hidden_default': entry.hiddenDefault
+            'rewatched': entry.rewatched,
+            'notes': entry.notes,
+            'advanced_rating_scores': entry.advancedRatingScores,
+            'custom_lists': entry.customLists,
+            'hidden_default': entry.hiddenDefault
         }
 
-        logger.debug(self._headers)
-        logger.debug(data)
+        return self.put(data=data)
 
-        response = requests.put(self._postUrl, data=data, headers=self._headers)
-        raise_from_respose(response)
-
-        return response
+#        response = http.request(
+#            'PUT',
+#            self._ENDPOINT,
+#            body=encoded_data,
+#            headers=self._headers)
+#        #response = requests.put(self._ENDPOINT, json=json.dumps(data), headers=self._headers)
+#        logger.debug('Response: ' + str(json.loads(response.data.decode('utf-8'))))
+#        raise_from_respose(response)
+#
+#        return response
 
     def create(self, entry):
         data = {
@@ -88,13 +95,13 @@ class AnimeListResource(Resource):
             'custom_lists': entry.customLists,
             'hidden_default': entry.hiddenDefault }
 
-        response = requests.post(self._postUrl, data=data, headers=self._headers)
+        response = requests.post(self._ENDPOINT, data=data, headers=self._headers)
         raise_from_respose(response)
 
         return response
 
     def delete(self, entry):
-        response = requests.delete(self._postUrl + str(entry.anime.id), headers=self._headers)
+        response = requests.delete(self._ENDPOINT + str(entry.anime.id), headers=self._headers)
         raise_from_respose(response)
 
         return response
