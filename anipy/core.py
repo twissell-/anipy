@@ -2,6 +2,7 @@ import requests
 import json
 import urllib3
 import logging
+import pprint
 
 from enum import Enum
 from datetime import datetime
@@ -23,7 +24,7 @@ class Resource(object):
     Works as a base class for all other resources, keeping the generic and re-usable functionality
     """
 
-    _URL = 'https://anilist.co'
+    _URL = 'http://anilist.co'
 
     def __init__(self):
         super(Resource, self).__init__()
@@ -40,32 +41,34 @@ class Resource(object):
     def request(self, method, endpoint=None, data=None, headers=None):
         headers = self._headers if headers is None else headers
         endpoint = self._ENDPOINT if endpoint is None else endpoint
+        data = dic_to_json(data)
 
-        logger.debug('Resource request: %s %s' % (method, str(data)))
+        logger.debug('Resource request: %s %s' % (method, endpoint))
+        logger.debug('Resource request body: %s' % str(data))
         logger.debug('Resource request headers: %s' % ((headers)))
 
         response = self._pool.request(
             method,
             endpoint,
-            fields=data,
+            body=data,
             headers=headers)
         raise_from_respose(response)
 
         response = response_to_dic(response)
-        logger.debug('Resource response: ' + str(response))
-        return response_to_dic(response)
+        logger.debug('Resource response: \n' + pprint.pformat(response))
+        return response
 
     def get(self, endpoint=None, data=None):
-        return self.request('GET', data)
+        return self.request('GET', endpoint=endpoint, data=data)
 
     def post(self, endpoint=None, data=None):
-        return self.request('POST', data)
+        return self.request('POST', endpoint=endpoint, data=data)
 
     def put(self, endpoint=None, data=None):
-        return self.request('PUT', data)
+        return self.request('PUT', endpoint=endpoint, data=data)
 
     def delete(self, endpoint=None, data=None):
-        return self.request('DELETE', data)
+        return self.request('DELETE', endpoint=endpoint, data=data)
 
 
 class Entity(metaclass=ABCMeta):
@@ -81,7 +84,6 @@ class Entity(metaclass=ABCMeta):
 
         if isinstance(response, requests.Response):
             response = response.json()
-        logger.debug(response)
         dic = {}
 
         for k in response:
@@ -106,7 +108,7 @@ class AuthenticationProvider(object):
     (Singleton) Builder for the Authentication class
     """
 
-    _URL = 'https://anilist.co'
+    _URL = 'http://anilist.co'
     _ENDPOINT = '/api/auth/access_token'
     _pool = urllib3.connectionpool.connection_from_url(_URL)
 
@@ -157,7 +159,7 @@ class AuthenticationProvider(object):
         return cls._instance._refreshRequest(refreshToken, clientId, clientSecret)
 
     def _authRequest(self, data ):
-        self._logger.debug('Auth request: ' + str(data))
+        self._logger.debug('Auth request: \n' + pprint.pformat(data))
         response = self._pool.request(
             'POST',
             self._ENDPOINT,
@@ -171,7 +173,7 @@ class AuthenticationProvider(object):
         auth = Authentication(**response)
         self._currentAuth = auth
 
-        self._logger.debug('Auth response: ' + str(response))
+        self._logger.debug('Auth response: \n' + pprint.pformat(response))
         return auth
 
     def _refreshRequest(self, refreshToken, clientId=None, clientSecret=None):

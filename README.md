@@ -122,6 +122,7 @@ Here is a sumary of the project state.
     - Search
   - **User Lists**
     - Custom Lists
+    - Advanced Rating Scores
     - Stars and Smiley score
   - **Anime**
     - Characters / Staff

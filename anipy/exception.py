@@ -1,7 +1,7 @@
 import logging
-
 from urllib3.response import HTTPResponse
-from json.decoder import JSONDecodeError
+
+from anipy.utils import response_to_dic
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +35,16 @@ def raise_from_respose(response):
     if 400 > response.status or response.status >= 600:
         return
 
-    print(response.data)
+    logger.debug('Response status: ' + str(response.status))
+    logger.debug('Response content-type: ' + response.headers['content-type'])
+
+    if response.status == 405:
+        logger.error('HTTP 405 Method not allowed.')
+        raise AniException('HTTP 405 Method not allowed.')
     if response.status == 500 and 'text/html' in response.headers['content-type']:
         raise InternalServerError('Anilist.co return a 500 Response and a html. No extra information was given.')
 
-    try:
-        response = response.json()
-    except JSONDecodeError as e:
-        logger.error('There was an error decoding the response', exc_info=True)
-        return
+    response = response_to_dic(response)
 
     if response.get('error') == 'invalid_grant':
         raise InvalidGrantException(response.get('error_description'))
@@ -54,5 +55,4 @@ def raise_from_respose(response):
             raise UnauthorizedException()
         raise UnauthorizedException(response.get('error_description'))
     else:
-        logger.warning('Unhandled error: ' + str(response))
-        raise AniException()
+        logger.error('Unhandled error: ' + str(response))

@@ -28,8 +28,11 @@ class UserResource(Resource):
 
 
 class User(Entity):
-    """docstring for User"""
+    """
+    Object representation of an Anilist User response.
+    """
 
+    _userResource = UserResource()
     _animeListResource = AnimeListResource()
 
     def __init__(self, **kwargs):
@@ -55,7 +58,29 @@ class User(Entity):
 
     @classmethod
     def resource(cls):
-        return UserResource()
+        return cls._userResource
+
+    @classmethod
+    def principal(cls):
+        """
+        Shrotcut to UserResource's principal method.
+        """
+        return cls._userResource.principal()
+
+    @classmethod
+    def byDisplayName(cls, displayName):
+        """
+        Shrotcut to UserResource's byDisplayName method.
+        """
+        return cls._userResource.byDisplayName(displayName)
+
+    @classmethod
+    def byId(cls, id_):
+        """
+        Shrotcut to UserResource's byId method.
+        """
+        return cls._userResource.byId(id_)
+
 
     @property
     def lists(self):

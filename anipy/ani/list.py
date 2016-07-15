@@ -30,16 +30,16 @@ class ListEntry(Entity):
 
         self._recordId = kwargs.get('recordId', None)
         self._listStatus = listStatus
-        self._score = kwargs.get('score', None)
+        self._score = kwargs.get('score', 0)
         self._priorty = kwargs.get('priorty', None)
         self._notes = kwargs.get('notes', None)
         self._private = kwargs.get('private', None)
         self._updatedTime = kwargs.get('updatedTime', None)
         self._addedTime = kwargs.get('addedTime', None)
-        self._scoreRaw = kwargs.get('scoreRaw', None)
-        self._advancedRatingScores = kwargs.get('advancedRatingScores', (0, 0, 0, 0, 0))
+        self._scoreRaw = kwargs.get('scoreRaw', 0)
+        self._advancedRatingScores = kwargs.get('advancedRatingScores', [0, 0, 0, 0, 0])
         self._hiddenDefault = kwargs.get('hiddenDefault', False)
-        self._customLists = kwargs.get('customLists', None)
+        self._customLists = kwargs.get('customLists', [0, 0, 0, 0, 0])
 
     @property
     def save(self):

@@ -27,6 +27,13 @@ class SmallAnime(object):
         self._relationType = kwargs.get('relationType', None)
         self._role = kwargs.get('role', None)
 
+    def __repr__(self):
+        return '<%s %s \'%s\'>' % (
+            self.__class__.__name__, 
+            self.id,
+            self.titleRomaji)
+
+
     @classmethod
     def fromResponse(cls, response):
         if isinstance(response, requests.Response):

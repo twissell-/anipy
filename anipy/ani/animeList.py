@@ -1,4 +1,3 @@
-import requests
 import urllib3
 from urllib.parse import urlencode
 import logging
@@ -15,8 +14,8 @@ logger = logging.getLogger(__name__)
 class AnimeListResource(Resource):
     """docstring for AnimeListResource"""
 
-    _getUrl = Resource._URL + '/api/user/%s/animelist/'
-    _ENDPOINT = Resource._URL + '/api/animelist/'
+    _GET_ENDPOINT = '/api/user/%s/animelist/'
+    _ENDPOINT = '/api/animelist/'
     
     _all_lists_key = 'lists'
     _watching_key = 'watching'
@@ -64,23 +63,10 @@ class AnimeListResource(Resource):
             'episodes_watched': entry.episodesWatched,
             'rewatched': entry.rewatched,
             'notes': entry.notes,
-            'advanced_rating_scores': entry.advancedRatingScores,
-            'custom_lists': entry.customLists,
             'hidden_default': entry.hiddenDefault
         }
 
         return self.put(data=data)
-
-#        response = http.request(
-#            'PUT',
-#            self._ENDPOINT,
-#            body=encoded_data,
-#            headers=self._headers)
-#        #response = requests.put(self._ENDPOINT, json=json.dumps(data), headers=self._headers)
-#        logger.debug('Response: ' + str(json.loads(response.data.decode('utf-8'))))
-#        raise_from_respose(response)
-#
-#        return response
 
     def create(self, entry):
         data = {
@@ -91,8 +77,6 @@ class AnimeListResource(Resource):
             'episodes_watched': entry.episodesWatched,
             'rewatched': entry.rewatched,
             'notes': entry.notes,
-            'advanced_rating_scores': entry.advancedRatingScores,
-            'custom_lists': entry.customLists,
             'hidden_default': entry.hiddenDefault }
 
         response = requests.post(self._ENDPOINT, data=data, headers=self._headers)
@@ -107,17 +91,14 @@ class AnimeListResource(Resource):
         return response
 
     def _listByUserIdAndListKey(self, id_, key):
-        return list(AnimeListEntry.fromResponse(item) for item in self._requestByUserIdOrDisplayName(id_).json()[self._all_lists_key][key])
+        return list(AnimeListEntry.fromResponse(item) for item in self._requestByUserIdOrDisplayName(id_)[self._all_lists_key][key])
 
     def _requestByUserIdOrDisplayName(self, displayName, raw=False):
-        url = self._getUrl % str(displayName)
+        url = self._GET_ENDPOINT % str(displayName)
         if raw:
             url += 'raw'
 
-        response = requests.get(self._getUrl % displayName, headers=self._headers)
-        raise_from_respose(response)
-
-        return response
+        return self.get(endpoint=url)
 
 
 class AnimeListEntry(ListEntry):
@@ -131,6 +112,12 @@ class AnimeListEntry(ListEntry):
         self._anime = kwargs.get('anime', None)
         self._episodesWatched = kwargs.get('episodesWatched', 0)
         self._rewatched = kwargs.get('rewatched', 0)
+
+    def __repr__(self):
+        return '<%s \'%s\' %d>' % (
+            self.__class__.__name__, 
+            self.anime.titleRomaji,
+            self.episodesWatched)
 
     @property
     def anime(self):
