@@ -91,7 +91,14 @@ class AnimeListResource(Resource):
         return response
 
     def _listByUserIdAndListKey(self, id_, key):
-        return list(AnimeListEntry.fromResponse(item) for item in self._requestByUserIdOrDisplayName(id_)[self._all_lists_key][key])
+        try:
+            return list(AnimeListEntry.fromResponse(item) for item in self._requestByUserIdOrDisplayName(id_)[self._all_lists_key][key])
+        except TypeError:
+            logger.warning('User has no anime lists.')
+            return []
+        except KeyError:
+            logger.warning('Anime list \'%s\' is empty.' % key)
+            return []
 
     def _requestByUserIdOrDisplayName(self, displayName, raw=False):
         url = self._GET_ENDPOINT % str(displayName)

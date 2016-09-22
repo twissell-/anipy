@@ -35,9 +35,9 @@ Before you can access any Anilist resource you have to get authenticated. Once y
 Now you can get authenticated with any of the available [grant types]. Aditionaly, Anipy have a ```GrantType.refreshToken``` in case you have saved a refresh token from a previous authentication. *Note that only code and pin authentication gives you a refresh token.*
 
 ```python
-from anipy.auth import AuthenticationProvider
-from anipy.auth import Authentication
-from anipy.auth import GrantType
+from anipy import AuthenticationProvider
+from anipy import Authentication
+from anipy import GrantType
 
 AuthenticationProvider.config('your-client-id', 'your-client-secret', 'your-redirect-uri')
 
