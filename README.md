@@ -99,9 +99,15 @@ Here is a sumary of the project state.
     - [x] Basics
   - [ ] **User Lists**
     - [ ] Animelist
+      - [x] Update watched episodes
+      - [x] Update rewatched
+      - [ ] Update notes
+      - [ ] Update list status
+      - [ ] Update score (simple)
+      - [ ] Create a entry
+      - [ ] Remove entry
     - [ ] Mangalist
-    - [ ] Remove entry
-    - [ ] List Scores
+    - [ ] List Scores types
   - [ ] **Anime**
     - [ ] Basics
     - [ ] Airing
@@ -110,54 +116,10 @@ Here is a sumary of the project state.
     - [ ] Basics
     - [ ] Search
 
-### Future Features
+### Out of Scope
 
-  - **User**
-    - Activity
-    - Followers & Following
-    - Follow/Unfollow
-    - Favourites
-    - Notifications
-    - Airing
-    - Search
-  - **User Lists**
-    - Custom Lists
-    - Advanced Rating Scores
-    - Stars and Smiley score
-  - **Anime**
-    - Characters / Staff
-    - Browse
-    - Favourite
-  - **Manga**
-    - Characters / Staff
-    - Browse
-    - Favourite
-  - **Characters**
-    - Favourite
-    - Search
-  - **Staff**
-    - Favourite
-    - Search
-  - **Studio**
-    - Search
-  - **Reviews**
-    - Review
-    - Anime/Manga Reviews
-    - User Reviews
-    - Rate Review
-    - Remove Review
-  - **Forum**
-    - Feeds
-    - Thread
-    - Create thread
-    - Edit thread
-    - Remove thread
-    - Thread subscribe
-    - Create comment
-    - Edit comment
-    - Remove comment
-    - Search
-
+  - Advance rating score
+  - Custom lists
 
 [Anilist]: http://Anilist.co
 [official docs]: https://anilist-api.readthedocs.io

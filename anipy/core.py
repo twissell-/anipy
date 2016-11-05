@@ -159,6 +159,8 @@ class AuthenticationProvider(object):
         return cls._instance._refreshRequest(refreshToken, clientId, clientSecret)
 
     def _authRequest(self, data ):
+        self._logger.debug('Auth request method: ' + 'POST')
+        self._logger.debug('Auth request url: ' + self._ENDPOINT)
         self._logger.debug('Auth request: \n' + pprint.pformat(data))
         response = self._pool.request(
             'POST',

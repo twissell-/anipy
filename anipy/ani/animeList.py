@@ -55,18 +55,18 @@ class AnimeListResource(Resource):
         return rtn
 
     def update(self, entry):
-        data = {
-            'id': entry.anime.id,
-            'list_status': entry.listStatus.value,
-            'score': entry.score,
-            'score_raw': entry.scoreRaw,
-            'episodes_watched': entry.episodesWatched,
-            'rewatched': entry.rewatched,
-            'notes': entry.notes,
-            'hidden_default': entry.hiddenDefault
-        }
+        # data = {
+        #     'id': entry.anime.id,
+        #     'list_status': entry.listStatus.value,
+        #     'score': entry.score,
+        #     'score_raw': entry.scoreRaw,
+        #     'episodes_watched': entry.episodesWatched,
+        #     'rewatched': entry.rewatched,
+        #     'notes': entry.notes,
+        #     'hidden_default': entry.hiddenDefault
+        # }
 
-        return self.put(data=data)
+        return self.put(data=entry.updateData)
 
     def create(self, entry):
         data = {
@@ -120,6 +120,10 @@ class AnimeListEntry(ListEntry):
         self._episodesWatched = kwargs.get('episodesWatched', 0)
         self._rewatched = kwargs.get('rewatched', 0)
 
+        self._updateData = {
+            'id': self._anime.id
+        }
+
     def __repr__(self):
         return '<%s \'%s\' %d>' % (
             self.__class__.__name__, 
@@ -138,6 +142,10 @@ class AnimeListEntry(ListEntry):
     def rewatched(self):
         return self._rewatched
 
+    @property
+    def updateData(self):
+        return self._updateData
+
     @anime.setter
     def anime(self, anime):
         self._anime = anime
@@ -145,7 +153,9 @@ class AnimeListEntry(ListEntry):
     @episodesWatched.setter
     def episodesWatched(self, episodesWatched):
         self._episodesWatched = episodesWatched
+        self._updateData['episodes_watched'] = episodesWatched
 
     @rewatched.setter
     def rewatched(self, rewatched):
         self._rewatched = rewatched
+        self._updateData['rewatched'] = rewatched
