@@ -1,5 +1,4 @@
 import requests
-import json
 import urllib3
 import logging
 import pprint
@@ -11,20 +10,29 @@ from abc import ABCMeta
 from anipy.utils import underscore_to_camelcase
 from anipy.utils import dic_to_json
 from anipy.utils import response_to_dic
-from anipy.exception import raise_from_respose
+from anipy.exception import raise_from_response
 from anipy.exception import NotAuthenticatedException
 
 logger = logging.getLogger(__name__)
 
 
-class Resource(object):
+class Resource(metaclass=ABCMeta):
     """
-    Abstract resource class. 
+    Abstract resource class.
 
-    Works as a base class for all other resources, keeping the generic and re-usable functionality
+    Works as a base class for all other resources, keeping the generic and re-usable functionality.
+
+    Provides to the classes that inherit it with a connection pool (:any:`urllib3.connectionpool.HTTPSConnectionPool`)
+    and methods to make all requests to the anilist api through it.
+
     """
 
     _URL = 'http://anilist.co'
+    """*Constant.* Base url that is used for all requests. Each resource **must** define it own endpoint based on this
+    url."""
+
+    _ENDPOINT = None
+    """Default endpoint for each resource implementation."""
 
     def __init__(self):
         super(Resource, self).__init__()
@@ -32,6 +40,18 @@ class Resource(object):
 
     @property
     def _headers(self):
+        """
+        Generates the default headers with the according credentials.
+
+        Example::
+
+            {
+                "Authorization": "BEARER youraccestokenhere",
+                "Content-Type": "application/json"
+            }
+
+        :return: (:obj:`dict`) Default headers for common requests.
+        """
         auth = AuthenticationProvider.currentAuth()
 
         return {
@@ -39,6 +59,31 @@ class Resource(object):
             'Content-Type': 'application/json'}
 
     def request(self, method, endpoint=None, data=None, headers=None):
+        """
+        Makes a *method* request to *endpoint* with *data* and *headers*.
+
+        :param method: (:obj:`str`) String for the http method: GET, POST, PUT DELETE. Other methods are not supported.
+
+        :param endpoint: (:obj:`str`, optional) String for the endpoint where the request aims. Remember, all endpoints
+            refers to :any:`_URL`.
+
+            If none, request will aim to :any:`_ENDPOINT`.
+
+            Example: `'/api/user/demo/animelist/'`
+
+        :param data: (:obj:`dict`, optional) Parameters to be included in the request.
+
+            If none, no parameters will be sent.
+
+        :param headers: (:obj:`dict`, optional) Headers to be included in the request.
+
+            If none, default parameters will be used (see :any:`_headers`).
+
+        :raise: See :any:`raise_from_response`
+
+        :return: (:obj:`dict`) Response.
+        """
+
         headers = self._headers if headers is None else headers
         endpoint = self._ENDPOINT if endpoint is None else endpoint
         data = dic_to_json(data)
@@ -52,23 +97,59 @@ class Resource(object):
             endpoint,
             body=data,
             headers=headers)
-        raise_from_respose(response)
+        raise_from_response(response)
 
         response = response_to_dic(response)
         logger.debug('Resource response: \n' + pprint.pformat(response))
         return response
 
-    def get(self, endpoint=None, data=None):
-        return self.request('GET', endpoint=endpoint, data=data)
+    def get(self, endpoint=None, data=None, headers=None):
+        """
+        *Helper.* Calls :any:`request` with `method='GET'`
 
-    def post(self, endpoint=None, data=None):
-        return self.request('POST', endpoint=endpoint, data=data)
+        :param endpoint: See :any:`request`.
+        :param data: See :any:`request`.
+        :param headers: See :any:`request`.
+        :return: (:obj:`dict`) Response.
+        """
 
-    def put(self, endpoint=None, data=None):
-        return self.request('PUT', endpoint=endpoint, data=data)
+        return self.request('GET', endpoint=endpoint, data=data, headers=headers)
 
-    def delete(self, endpoint=None, data=None):
-        return self.request('DELETE', endpoint=endpoint, data=data)
+    def post(self, endpoint=None, data=None, headers=None):
+        """
+        *Helper.* Calls :any:`request` with `method='POST'`
+
+        :param endpoint: See :any:`request`.
+        :param data: See :any:`request`.
+        :param headers: See :any:`request`.
+        :return: (:obj:`dict`) Response.
+        """
+
+        return self.request('POST', endpoint=endpoint, data=data, headers=headers)
+
+    def put(self, endpoint=None, data=None, headers=None):
+        """
+        *Helper.* Calls :any:`request` with `method='PUT'`
+
+        :param endpoint: See :any:`request`.
+        :param data: See :any:`request`.
+        :param headers: See :any:`request`.
+        :return: (:obj:`dict`) Response.
+        """
+
+        return self.request('PUT', endpoint=endpoint, data=data, headers=headers)
+
+    def delete(self, endpoint=None, data=None, headers=None):
+        """
+        *Helper.* Calls :any:`request` with `method='DELETE'`
+
+        :param endpoint: See :any:`request`.
+        :param data: See :any:`request`.
+        :param headers: See :any:`request`.
+        :return: (:obj:`dict`) Response.
+        """
+
+        return self.request('DELETE', endpoint=endpoint, data=data, headers=headers)
 
 
 class Entity(metaclass=ABCMeta):
@@ -94,6 +175,10 @@ class Entity(metaclass=ABCMeta):
 
         return cls(**dic)
 
+    @property
+    def updateData(self):
+        return self._updateData
+
 
 class GrantType(Enum):
     """Enum for Authentication grant type."""
@@ -118,11 +203,10 @@ class AuthenticationProvider(object):
 
     _logger = logging.getLogger(__name__ + '.AuthenticationProvider')
 
-
-    def __new__(type, grantType):
-        if not '_instance' in type.__dict__:
-            type._instance = object.__new__(type)
-        return type._instance
+    def __new__(cls, grantType):
+        if not '_instance' in cls.__dict__:
+            cls._instance = object.__new__(cls)
+        return cls._instance
 
     def __init__(self, grantType):
         super(AuthenticationProvider, self).__init__()
@@ -166,7 +250,7 @@ class AuthenticationProvider(object):
             'POST',
             self._ENDPOINT,
             fields=data)
-        raise_from_respose(response)
+        raise_from_response(response)
 
         response = response_to_dic(response)
         if data.get('refresh_token') is not None:

@@ -1,9 +1,10 @@
 import requests
 
+from anipy.core import Entity
 from anipy.utils import underscore_to_camelcase
 
 
-class SmallAnime(object):
+class SmallAnime(Entity):
     """docstring for SmallAnime"""
     def __init__(self, dic=None, **kwargs):
         super(SmallAnime, self).__init__()

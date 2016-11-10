@@ -1,15 +1,13 @@
-import urllib3
-from urllib.parse import urlencode
 import logging
-import json
 
 from anipy.core import Resource
 from anipy.utils import underscore_to_camelcase
-from anipy.exception import raise_from_respose
+from anipy.exception import raise_from_response
 from anipy.ani.list import ListEntry
 from anipy.ani.anime import SmallAnime
 
 logger = logging.getLogger(__name__)
+
 
 class AnimeListResource(Resource):
     """docstring for AnimeListResource"""
@@ -55,17 +53,6 @@ class AnimeListResource(Resource):
         return rtn
 
     def update(self, entry):
-        # data = {
-        #     'id': entry.anime.id,
-        #     'list_status': entry.listStatus.value,
-        #     'score': entry.score,
-        #     'score_raw': entry.scoreRaw,
-        #     'episodes_watched': entry.episodesWatched,
-        #     'rewatched': entry.rewatched,
-        #     'notes': entry.notes,
-        #     'hidden_default': entry.hiddenDefault
-        # }
-
         return self.put(data=entry.updateData)
 
     def create(self, entry):
@@ -80,13 +67,13 @@ class AnimeListResource(Resource):
             'hidden_default': entry.hiddenDefault }
 
         response = requests.post(self._ENDPOINT, data=data, headers=self._headers)
-        raise_from_respose(response)
+        raise_from_response(response)
 
         return response
 
     def delete(self, entry):
         response = requests.delete(self._ENDPOINT + str(entry.anime.id), headers=self._headers)
-        raise_from_respose(response)
+        raise_from_response(response)
 
         return response
 
@@ -141,10 +128,6 @@ class AnimeListEntry(ListEntry):
     @property
     def rewatched(self):
         return self._rewatched
-
-    @property
-    def updateData(self):
-        return self._updateData
 
     @anime.setter
     def anime(self, anime):

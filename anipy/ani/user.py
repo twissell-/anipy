@@ -1,7 +1,7 @@
 from anipy.core import Resource
 from anipy.core import Entity
 from anipy.ani.animeList import AnimeListResource
-from anipy.exception import raise_from_respose
+from anipy.exception import raise_from_response
 
 
 class UserResource(Resource):

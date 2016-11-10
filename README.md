@@ -118,6 +118,8 @@ Here is a sumary of the project state.
 
 ### Out of Scope
 
+Thing that I'm going to do soon.
+
   - Advance rating score
   - Custom lists
 
