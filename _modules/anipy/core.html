@@ -1,0 +1,477 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>anipy.core &#8212; Anipy 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="Anipy 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for anipy.core</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">urllib3</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span>
+
+<span class="kn">from</span> <span class="nn">anipy.utils</span> <span class="k">import</span> <span class="n">underscore_to_camelcase</span>
+<span class="kn">from</span> <span class="nn">anipy.utils</span> <span class="k">import</span> <span class="n">dic_to_json</span>
+<span class="kn">from</span> <span class="nn">anipy.utils</span> <span class="k">import</span> <span class="n">response_to_dic</span>
+<span class="kn">from</span> <span class="nn">anipy.exception</span> <span class="k">import</span> <span class="n">raise_from_response</span>
+<span class="kn">from</span> <span class="nn">anipy.exception</span> <span class="k">import</span> <span class="n">NotAuthenticatedException</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Resource"><a class="viewcode-back" href="../../index.html#anipy.core.Resource">[docs]</a><span class="k">class</span> <span class="nc">Resource</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract resource class.</span>
+
+<span class="sd">    Works as a base class for all other resources, keeping the generic and re-usable functionality.</span>
+
+<span class="sd">    Provides to the classes that inherit it with a connection pool (:any:`urllib3.connectionpool.HTTPSConnectionPool`)</span>
+<span class="sd">    and methods to make all requests to the anilist api through it.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_URL</span> <span class="o">=</span> <span class="s1">&#39;http://anilist.co&#39;</span>
+    <span class="sd">&quot;&quot;&quot;*Constant.* Base url that is used for all requests. Each resource **must** define it own endpoint based on this</span>
+<span class="sd">    url.&quot;&quot;&quot;</span>
+
+    <span class="n">_ENDPOINT</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="sd">&quot;&quot;&quot;Default endpoint for each resource implementation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">connectionpool</span><span class="o">.</span><span class="n">connection_from_url</span><span class="p">(</span><span class="n">Resource</span><span class="o">.</span><span class="n">_URL</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the default headers with the according credentials.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;Authorization&quot;: &quot;BEARER youraccestokenhere&quot;,</span>
+<span class="sd">                &quot;Content-Type&quot;: &quot;application/json&quot;</span>
+<span class="sd">            }</span>
+
+<span class="sd">        :return: (:obj:`dict`) Default headers for common requests.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="n">AuthenticationProvider</span><span class="o">.</span><span class="n">currentAuth</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">auth</span><span class="o">.</span><span class="n">tokenType</span><span class="p">,</span> <span class="n">auth</span><span class="o">.</span><span class="n">accessToken</span><span class="p">),</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">}</span>
+
+<div class="viewcode-block" id="Resource.request"><a class="viewcode-back" href="../../index.html#anipy.core.Resource.request">[docs]</a>    <span class="k">def</span> <span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes a *method* request to *endpoint* with *data* and *headers*.</span>
+
+<span class="sd">        :param method: (:obj:`str`) String for the http method: GET, POST, PUT DELETE. Other methods are not supported.</span>
+
+<span class="sd">        :param endpoint: (:obj:`str`, optional) String for the endpoint where the request aims. Remember, all endpoints</span>
+<span class="sd">            refers to :any:`_URL`.</span>
+
+<span class="sd">            If none, request will aim to :any:`_ENDPOINT`.</span>
+
+<span class="sd">            Example: `&#39;/api/user/demo/animelist/&#39;`</span>
+
+<span class="sd">        :param data: (:obj:`dict`, optional) Parameters to be included in the request.</span>
+
+<span class="sd">            If none, no parameters will be sent.</span>
+
+<span class="sd">        :param headers: (:obj:`dict`, optional) Headers to be included in the request.</span>
+
+<span class="sd">            If none, default parameters will be used (see :any:`_headers`).</span>
+
+<span class="sd">        :raise: See :any:`raise_from_response`</span>
+
+<span class="sd">        :return: (:obj:`dict`) Response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span> <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">headers</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ENDPOINT</span> <span class="k">if</span> <span class="n">endpoint</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">endpoint</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">dic_to_json</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Resource request: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Resource request body: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Resource request headers: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">headers</span><span class="p">)))</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="n">method</span><span class="p">,</span>
+            <span class="n">endpoint</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">raise_from_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response_to_dic</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Resource response: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="Resource.get"><a class="viewcode-back" href="../../index.html#anipy.core.Resource.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        *Helper.* Calls :any:`request` with `method=&#39;GET&#39;`</span>
+
+<span class="sd">        :param endpoint: See :any:`request`.</span>
+<span class="sd">        :param data: See :any:`request`.</span>
+<span class="sd">        :param headers: See :any:`request`.</span>
+<span class="sd">        :return: (:obj:`dict`) Response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Resource.post"><a class="viewcode-back" href="../../index.html#anipy.core.Resource.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        *Helper.* Calls :any:`request` with `method=&#39;POST&#39;`</span>
+
+<span class="sd">        :param endpoint: See :any:`request`.</span>
+<span class="sd">        :param data: See :any:`request`.</span>
+<span class="sd">        :param headers: See :any:`request`.</span>
+<span class="sd">        :return: (:obj:`dict`) Response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Resource.put"><a class="viewcode-back" href="../../index.html#anipy.core.Resource.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        *Helper.* Calls :any:`request` with `method=&#39;PUT&#39;`</span>
+
+<span class="sd">        :param endpoint: See :any:`request`.</span>
+<span class="sd">        :param data: See :any:`request`.</span>
+<span class="sd">        :param headers: See :any:`request`.</span>
+<span class="sd">        :return: (:obj:`dict`) Response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Resource.delete"><a class="viewcode-back" href="../../index.html#anipy.core.Resource.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        *Helper.* Calls :any:`request` with `method=&#39;DELETE&#39;`</span>
+
+<span class="sd">        :param endpoint: See :any:`request`.</span>
+<span class="sd">        :param data: See :any:`request`.</span>
+<span class="sd">        :param headers: See :any:`request`.</span>
+<span class="sd">        :return: (:obj:`dict`) Response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">Entity</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for al classes that are mapped from/to an anilist response.&quot;&quot;&quot;</span>
+
+    <span class="n">__composite__</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Entity</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">fromResponse</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">):</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">dic</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__composite__</span><span class="p">:</span>
+                <span class="n">dic</span><span class="p">[</span><span class="n">underscore_to_camelcase</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__composite__</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">fromResponse</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dic</span><span class="p">[</span><span class="n">underscore_to_camelcase</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">dic</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">updateData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateData</span>
+
+
+<span class="k">class</span> <span class="nc">GrantType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Enum for Authentication grant type.&quot;&quot;&quot;</span>
+    <span class="n">authorizationCode</span> <span class="o">=</span> <span class="s1">&#39;authorization_code&#39;</span>
+    <span class="n">authorizationPin</span> <span class="o">=</span> <span class="s1">&#39;authorization_pin&#39;</span>
+    <span class="n">clientCredentials</span> <span class="o">=</span> <span class="s1">&#39;client_credentials&#39;</span>
+    <span class="n">refreshToken</span> <span class="o">=</span> <span class="s1">&#39;refresh_token&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">AuthenticationProvider</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    (Singleton) Builder for the Authentication class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_URL</span> <span class="o">=</span> <span class="s1">&#39;http://anilist.co&#39;</span>
+    <span class="n">_ENDPOINT</span> <span class="o">=</span> <span class="s1">&#39;/api/auth/access_token&#39;</span>
+    <span class="n">_pool</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">connectionpool</span><span class="o">.</span><span class="n">connection_from_url</span><span class="p">(</span><span class="n">_URL</span><span class="p">)</span>
+
+    <span class="n">clientId</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">clientSecret</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">redirectUri</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span> <span class="o">+</span> <span class="s1">&#39;.AuthenticationProvider&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">grantType</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;_instance&#39;</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grantType</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AuthenticationProvider</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grantType</span> <span class="o">=</span> <span class="n">grantType</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentAuth</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">grantType</span> <span class="ow">is</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">authorizationCode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_codeRequest</span>
+        <span class="k">elif</span> <span class="n">grantType</span> <span class="ow">is</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">authorizationPin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pinRequest</span>
+        <span class="k">elif</span> <span class="n">grantType</span> <span class="ow">is</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">clientCredentials</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clientCredentialsRequest</span>
+        <span class="k">elif</span> <span class="n">grantType</span> <span class="ow">is</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">refreshToken</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_refreshRequest</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid grant type.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span> <span class="n">clientSecret</span><span class="p">,</span> <span class="n">redirectUri</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">clientId</span> <span class="o">=</span> <span class="n">clientId</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">clientSecret</span> <span class="o">=</span> <span class="n">clientSecret</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">redirectUri</span> <span class="o">=</span> <span class="n">redirectUri</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">currentAuth</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_currentAuth</span>
+        <span class="k">if</span>  <span class="n">auth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NotAuthenticatedException</span><span class="p">(</span><span class="s1">&#39;Current authentication is None.&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">auth</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">refreshToken</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_refreshRequest</span><span class="p">(</span><span class="n">refreshToken</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span> <span class="n">clientSecret</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_authRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span> <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Auth request method: &#39;</span> <span class="o">+</span> <span class="s1">&#39;POST&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Auth request url: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ENDPOINT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Auth request: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ENDPOINT</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">raise_from_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response_to_dic</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">response</span><span class="p">[</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">)</span>
+
+        <span class="n">auth</span> <span class="o">=</span> <span class="n">Authentication</span><span class="p">(</span><span class="o">**</span><span class="n">response</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentAuth</span> <span class="o">=</span> <span class="n">auth</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Auth response: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">auth</span>
+
+    <span class="k">def</span> <span class="nf">_refreshRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refreshToken</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">clientId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientId</span> <span class="k">if</span> <span class="n">clientId</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientId</span>
+        <span class="n">clientSecret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientSecret</span> <span class="k">if</span> <span class="n">clientSecret</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientSecret</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">refreshToken</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="n">clientId</span><span class="p">,</span>
+            <span class="s1">&#39;client_secret&#39;</span><span class="p">:</span> <span class="n">clientSecret</span><span class="p">,</span>
+            <span class="s1">&#39;refresh_token&#39;</span><span class="p">:</span> <span class="n">refreshToken</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authRequest</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_codeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">redirectUri</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">clientId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientId</span> <span class="k">if</span> <span class="n">clientId</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientId</span>
+        <span class="n">clientSecret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientSecret</span> <span class="k">if</span> <span class="n">clientSecret</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientSecret</span>
+        <span class="n">redirectUri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redirectUri</span> <span class="k">if</span> <span class="n">redirectUri</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">redirectUri</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">authorizationCode</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="n">clientId</span><span class="p">,</span>
+            <span class="s1">&#39;client_secret&#39;</span><span class="p">:</span> <span class="n">clientSecret</span><span class="p">,</span>
+            <span class="s1">&#39;redirect_uri&#39;</span><span class="p">:</span> <span class="n">redirectUri</span><span class="p">,</span>
+            <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">code</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authRequest</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_pinRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">redirectUri</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">clientId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientId</span> <span class="k">if</span> <span class="n">clientId</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientId</span>
+        <span class="n">clientSecret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientSecret</span> <span class="k">if</span> <span class="n">clientSecret</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientSecret</span>
+        <span class="n">redirectUri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redirectUri</span> <span class="k">if</span> <span class="n">redirectUri</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">redirectUri</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">authorizationPin</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="n">clientId</span><span class="p">,</span>
+            <span class="s1">&#39;client_secret&#39;</span><span class="p">:</span> <span class="n">clientSecret</span><span class="p">,</span>
+            <span class="s1">&#39;redirect_uri&#39;</span><span class="p">:</span> <span class="n">redirectUri</span><span class="p">,</span>
+            <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">pin</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authRequest</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_clientCredentialsRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">clientId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientId</span> <span class="k">if</span> <span class="n">clientId</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientId</span>
+        <span class="n">clientSecret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientSecret</span> <span class="k">if</span> <span class="n">clientSecret</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">clientSecret</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="n">GrantType</span><span class="o">.</span><span class="n">clientCredentials</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="n">clientId</span><span class="p">,</span>
+            <span class="s1">&#39;client_secret&#39;</span><span class="p">:</span> <span class="n">clientSecret</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authRequest</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Authentication</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a Anilist authentication response.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Authentication</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accessToken</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;access_token&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tokenType</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;token_type&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expiresIn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;expires_in&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refreshToken</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">exp</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;expires&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expires</span> <span class="o">=</span> <span class="n">exp</span> <span class="k">if</span> <span class="n">exp</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">exp</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">fromCode</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">redirectUri</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AuthenticationProvider</span><span class="p">(</span>
+            <span class="n">GrantType</span><span class="o">.</span><span class="n">authorizationCode</span><span class="p">)</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span> <span class="n">clientSecret</span><span class="p">,</span> <span class="n">redirectUri</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">fromPin</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">pin</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">redirectUri</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AuthenticationProvider</span><span class="p">(</span>
+            <span class="n">GrantType</span><span class="o">.</span><span class="n">authorizationPin</span><span class="p">)</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span> <span class="n">clientSecret</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">fromCredentials</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AuthenticationProvider</span><span class="p">(</span>
+            <span class="n">GrantType</span><span class="o">.</span><span class="n">clientCredentials</span><span class="p">)</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span><span class="n">clientId</span><span class="p">,</span> <span class="n">clientSecret</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">fromRefreshToken</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">refreshToken</span><span class="p">,</span> <span class="n">clientId</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clientSecret</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AuthenticationProvider</span><span class="p">(</span><span class="n">GrantType</span><span class="o">.</span><span class="n">refreshToken</span><span class="p">)</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span><span class="n">refreshToken</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">newAuth</span> <span class="o">=</span> <span class="n">AuthenticationProvider</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refreshToken</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accessToken</span> <span class="o">=</span> <span class="n">newAuth</span><span class="o">.</span><span class="n">accessToken</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tokenType</span> <span class="o">=</span> <span class="n">newAuth</span><span class="o">.</span><span class="n">tokenType</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expiresIn</span> <span class="o">=</span> <span class="n">newAuth</span><span class="o">.</span><span class="n">expiresIn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expires</span> <span class="o">=</span> <span class="n">newAuth</span><span class="o">.</span><span class="n">expires</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1"> </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">accessToken</span><span class="p">,</span>
+            <span class="s1">&#39;Expired&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isExpired</span> <span class="k">else</span> <span class="s1">&#39;Not expired&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isExpired</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">expires</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accessToken</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isExpired</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accessToken</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tokenType</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenType</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expires</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expires</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expiresIn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expiresIn</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refreshToken</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_refreshToken</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Damian Maggio Esne.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
