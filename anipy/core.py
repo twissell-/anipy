@@ -25,6 +25,10 @@ class Resource(metaclass=ABCMeta):
     Provides to the classes that inherit it with a connection pool (:any:`urllib3.connectionpool.HTTPSConnectionPool`)
     and methods to make all requests to the anilist api through it.
 
+    All resources **must** be singletons.
+
+    The only request this class doesn't handle are the authentication ones, managed by :any:`AuthenticationProvider`
+
     """
 
     _URL = 'http://anilist.co'
@@ -156,12 +160,41 @@ class Entity(metaclass=ABCMeta):
     """Abstract base class for al classes that are mapped from/to an anilist response."""
 
     __composite__ = {}
+    """Define how different implementations of this class compose each other. See :any:`fromResponse`"""
 
     def __init__(self, **kwargs):
+        """
+        All sub classes **must** override this method. Here is where the json response from the api, converted to a dict
+        is mapped to the private attributes of each implementation.
+
+        Implementation example::
+
+            def __init__(self, **kwargs):
+                super(User, self).__init__(**kwargs)
+                self._id = kwargs.get('id', None)
+                self._displayName = kwargs.get('displayName', None)
+
+        :param kwargs: dict with values from the json entity to be mapped.
+        """
         super(Entity, self).__init__()
+        self._updateData = {}
 
     @classmethod
     def fromResponse(cls, response):
+        """
+        Class method that creates an instance of the implementation class, based on a json :obj:`requests.Response` or
+        a :obj:`dict`.
+
+        The 'magic' here resides in :any:`__composite__` attribute. :any:`__composite__` is a :obj:`dict` that allow an
+        implementation class to define: each time you find, lets say, 'user' in the json response, take its value pass
+        it as a parameter of the `fromResponse` method of User class. For this particular example, un the class that
+        uses User, you **must** define::
+
+            __composite__ = {'user': User}
+
+        :param response: Base data to create the instance
+        :return: An instance of the implementation class, composed and populated with the response data.
+        """
 
         if isinstance(response, requests.Response):
             response = response.json()
@@ -177,11 +210,24 @@ class Entity(metaclass=ABCMeta):
 
     @property
     def updateData(self):
+        """
+
+        :return:
+        """
         return self._updateData
 
 
 class GrantType(Enum):
-    """Enum for Authentication grant type."""
+    """
+    Enum for Authentication grant type.
+
+    Possible values:
+        - authorizationCode
+        - authorizationPin
+        - clientCredentials
+        - refreshToken
+
+    """
     authorizationCode = 'authorization_code'
     authorizationPin = 'authorization_pin'
     clientCredentials = 'client_credentials'
@@ -190,12 +236,13 @@ class GrantType(Enum):
 
 class AuthenticationProvider(object):
     """
-    (Singleton) Builder for the Authentication class
+    *Singleton*. Builder for the Authentication class
     """
 
     _URL = 'http://anilist.co'
     _ENDPOINT = '/api/auth/access_token'
     _pool = urllib3.connectionpool.connection_from_url(_URL)
+    _instance = None
 
     clientId = None
     clientSecret = None
@@ -204,7 +251,7 @@ class AuthenticationProvider(object):
     _logger = logging.getLogger(__name__ + '.AuthenticationProvider')
 
     def __new__(cls, grantType):
-        if not '_instance' in cls.__dict__:
+        if cls._instance is None:
             cls._instance = object.__new__(cls)
         return cls._instance
 
@@ -233,7 +280,7 @@ class AuthenticationProvider(object):
     @classmethod
     def currentAuth(cls):
         auth = cls._instance._currentAuth
-        if  auth is None:
+        if auth is None:
             raise NotAuthenticatedException('Current authentication is None.')
 
         return auth

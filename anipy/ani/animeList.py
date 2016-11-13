@@ -107,13 +107,11 @@ class AnimeListEntry(ListEntry):
         self._episodesWatched = kwargs.get('episodesWatched', 0)
         self._rewatched = kwargs.get('rewatched', 0)
 
-        self._updateData = {
-            'id': self._anime.id
-        }
+        self._updateData['id'] = self._anime.id
 
     def __repr__(self):
         return '<%s \'%s\' %d>' % (
-            self.__class__.__name__, 
+            self.__class__.__name__,
             self.anime.titleRomaji,
             self.episodesWatched)
 
@@ -136,9 +134,11 @@ class AnimeListEntry(ListEntry):
     @episodesWatched.setter
     def episodesWatched(self, episodesWatched):
         self._episodesWatched = episodesWatched
+        # TODO: find a way to improve this
         self._updateData['episodes_watched'] = episodesWatched
 
     @rewatched.setter
     def rewatched(self, rewatched):
         self._rewatched = rewatched
+        # TODO: find a way to improve this
         self._updateData['rewatched'] = rewatched
