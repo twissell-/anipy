@@ -6,14 +6,21 @@
 Welcome to Anipy's docs!
 ========================
 
-Anipy is a python library that wraps and organize the Anilist rest api into modules, classes and functions so it can be
-used quick, easy, and right out of the box. You can take a look at the api official docs. Anilist is a Josh Star's
-project
+Anipy is a python library that wraps and organize the
+`Anilist <http://Anilist.co>`__ rest api into modules, classes and
+functions so it can be used quick, easy, and right out of the box. You
+can take a look at the api `official
+docs <https://anilist-api.readthedocs.io>`__. Anilist is a `Josh
+Star <https://github.com/joshstar>`__'s project.
+
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   gettingstarted
+   core
 
 Indices and tables
 ==================
@@ -21,6 +28,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. autoclass:: anipy.core.Resource
-   :members: request, get, post, put, delete, _headers, _URL, _ENDPOINT

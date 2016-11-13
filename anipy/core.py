@@ -211,8 +211,16 @@ class Entity(metaclass=ABCMeta):
     @property
     def updateData(self):
         """
+        Each time an updatable attribute is updated, implementation class **must** set the corresponding entry in the
+        :any:`_updateData` dict. This operation should always be made in the setters.
 
-        :return:
+        When the update of a entity is made, the data for the request is obtained through this method so, any change
+        that isn't in this dict will be ignored.
+
+        For now, keys must be the keys of the json request. This doesn't support composite updates cause they are not
+        needed yet.
+
+        :return: :obj:`dict` with the new values of the updatable fields.
         """
         return self._updateData
 
@@ -236,7 +244,7 @@ class GrantType(Enum):
 
 class AuthenticationProvider(object):
     """
-    *Singleton*. Builder for the Authentication class
+    *Singleton*. Builder for the Authentication class. Works like a :any:`Resource` but with many specific behavior.
     """
 
     _URL = 'http://anilist.co'
@@ -273,12 +281,27 @@ class AuthenticationProvider(object):
 
     @classmethod
     def config(cls, clientId, clientSecret, redirectUri):
+        """
+        Sets all configuration params needed for this class to work. All this values are from Anilist web page.
+        See `how to create a client <https://anilist-api.readthedocs.io/en/latest/introduction.html#creating-a-client>`_
+
+        :param clientId: :obj:`str` Anilist client id.
+        :param clientSecret: :obj:`str` Anilist client secret.
+        :param redirectUri: :obj:`str` Anilist redirect uri.
+        """
+
+        # TODO: make redirectUri not mandatory.
+
         cls.clientId = clientId
         cls.clientSecret = clientSecret
         cls.redirectUri = redirectUri
 
     @classmethod
     def currentAuth(cls):
+        """
+
+        :return: Current :any:`Authentication` instance.
+        """
         auth = cls._instance._currentAuth
         if auth is None:
             raise NotAuthenticatedException('Current authentication is None.')
@@ -287,6 +310,11 @@ class AuthenticationProvider(object):
 
     @classmethod
     def refresh(cls, refreshToken, clientId=None, clientSecret=None):
+        """
+        Force authentication refresh.
+
+        :return: a refreshed :any:`Authentication`
+        """
         return cls._instance._refreshRequest(refreshToken, clientId, clientSecret)
 
     def _authRequest(self, data ):
@@ -378,24 +406,53 @@ class Authentication(object):
 
     @classmethod
     def fromCode(cls, code, clientId=None, clientSecret=None, redirectUri=None):
+        """
+        Generates a :any:`Authentication` instance from a authentication code.
+
+        :param code: :obj:`str` the authentication code
+        :return: :any:`Authentication`
+        """
         return AuthenticationProvider(
             GrantType.authorizationCode).authenticate(code, clientId, clientSecret, redirectUri)
 
     @classmethod
     def fromPin(cls, pin, clientId=None, clientSecret=None, redirectUri=None):
+        """
+        Generates a :any:`Authentication` instance from a authentication pin.
+
+        :param code: :obj:`str` the authentication pin
+        :return: :any:`Authentication`
+        """
         return AuthenticationProvider(
             GrantType.authorizationPin).authenticate(pin, clientId, clientSecret)
 
     @classmethod
     def fromCredentials(cls, clientId=None, clientSecret=None):
+        """
+        Generates a :any:`Authentication` instance based on the client credentials (Read only public content and doesn't
+        have refresh token).
+
+        :return: :any:`Authentication`
+        """
         return AuthenticationProvider(
             GrantType.clientCredentials).authenticate(clientId, clientSecret)
 
     @classmethod
     def fromRefreshToken(cls, refreshToken, clientId=None, clientSecret=None):
+        """
+        Generates a :any:`Authentication` instance from a refresh token.
+
+        :param code: :obj:`str` the refresh token
+        :return: :any:`Authentication`
+        """
         return AuthenticationProvider(GrantType.refreshToken).authenticate(refreshToken)
 
     def refresh(self):
+        """
+        Force authentication refresh.
+
+        :return: a refreshed :any:`Authentication`
+        """
         newAuth = AuthenticationProvider.refresh(self.refreshToken)
         self._accessToken = newAuth.accessToken
         self._tokenType = newAuth.tokenType
@@ -410,10 +467,19 @@ class Authentication(object):
 
     @property
     def isExpired(self):
+        """
+
+        :return: True if the authentication is expired, False otherwise.
+        """
         return self.expires < datetime.now()
 
     @property
     def accessToken(self):
+        """
+        If the authentication has expired, performs a refresh before return de access token.
+
+        :return: A valid access token.
+        """
         if self.isExpired:
             self.refresh()
 
