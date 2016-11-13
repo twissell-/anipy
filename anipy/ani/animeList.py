@@ -103,9 +103,10 @@ class AnimeListEntry(ListEntry):
 
     def __init__(self, **kwargs):
         super(AnimeListEntry, self).__init__(**kwargs)
-        self._anime = kwargs.get('anime', None)
+        self._anime = kwargs.get('anime')
         self._episodesWatched = kwargs.get('episodesWatched', 0)
         self._rewatched = kwargs.get('rewatched', 0)
+        self._notes = kwargs.get('notes')
 
         self._updateData['id'] = self._anime.id
 
@@ -127,6 +128,10 @@ class AnimeListEntry(ListEntry):
     def rewatched(self):
         return self._rewatched
 
+    @property
+    def notes(self):
+        return self._notes
+
     @anime.setter
     def anime(self, anime):
         self._anime = anime
@@ -142,3 +147,9 @@ class AnimeListEntry(ListEntry):
         self._rewatched = rewatched
         # TODO: find a way to improve this
         self._updateData['rewatched'] = rewatched
+
+    @notes.setter
+    def notes(self, value):
+        self._notes = value
+        # TODO: find a way to improve this
+        self._updateData['notes'] = value
