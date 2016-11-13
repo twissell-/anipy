@@ -8,6 +8,7 @@ from datetime import datetime
 from abc import ABCMeta
 
 from anipy.utils import underscore_to_camelcase
+from anipy.utils import camelcase_to_underscore
 from anipy.utils import dic_to_json
 from anipy.utils import response_to_dic
 from anipy.exception import raise_from_response
@@ -223,6 +224,29 @@ class Entity(metaclass=ABCMeta):
         :return: :obj:`dict` with the new values of the updatable fields.
         """
         return self._updateData
+
+
+class Updatable(object):
+    """
+    This class decorates setters to automatically add value changes to ``_updateData``.
+    """
+
+    _logger = logging.getLogger(__name__ + '.Updatable')
+
+    def __init__(self, setter):
+        self._setter = setter
+        self._key = camelcase_to_underscore(self._setter.__name__)
+        self._logger.debug('Updatable field created: ' + self._setter.__name__)
+
+    def __call__(self, *args):
+        self._setter(*args)
+        if isinstance(args[1], Enum):
+            args[0]._updateData[self._key] = args[1].value
+        else:
+            args[0]._updateData[self._key] = args[1]
+
+        self._logger.debug('Update data changed: ' + str(args[0]._updateData))
+
 
 
 class GrantType(Enum):

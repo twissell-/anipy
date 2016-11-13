@@ -11,6 +11,7 @@ logging.basicConfig(
 	level=logging.WARNING)
 
 logging.getLogger('anipy.ani.AnimeList').setLevel(logging.DEBUG)
+logging.getLogger('anipy.core.Updatable').setLevel(logging.DEBUG)
 
 logging.getLogger('requests').setLevel(logging.WARNING)
 logging.getLogger('urllib3').setLevel(logging.WARNING)

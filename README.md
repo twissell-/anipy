@@ -101,8 +101,8 @@ Here is a sumary of the project state.
     - [ ] Animelist
       - [x] Update watched episodes
       - [x] Update rewatched
-      - [ ] Update notes
-      - [ ] Update list status
+      - [x] Update notes
+      - [x] Update list status
       - [ ] Update score (simple)
       - [ ] Create a entry
       - [ ] Remove entry

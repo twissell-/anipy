@@ -3,6 +3,7 @@ import requests
 from enum import Enum
 
 from anipy.core import Entity
+from anipy.core import Updatable
 
 
 class ListStatus(Enum):
@@ -15,6 +16,9 @@ class ListStatus(Enum):
     planToWatch = 'plan to watch'
     planToRead = 'plan to watch'
     # none = None # uncomments if errors
+
+    def __str__(self):
+        return self.value
 
 
 class ListEntry(Entity):
@@ -58,6 +62,7 @@ class ListEntry(Entity):
         return self._listStatus
     
     @listStatus.setter
+    @Updatable
     def listStatus(self, listStatus):
         self._listStatus = listStatus
 
@@ -82,6 +87,7 @@ class ListEntry(Entity):
         return self._notes
     
     @notes.setter
+    @Updatable
     def notes(self, notes):
         self._notes = notes
 

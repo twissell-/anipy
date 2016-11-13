@@ -1,6 +1,7 @@
 import logging
 
 from anipy.core import Resource
+from anipy.core import Updatable
 from anipy.utils import underscore_to_camelcase
 from anipy.exception import raise_from_response
 from anipy.ani.list import ListEntry
@@ -106,7 +107,6 @@ class AnimeListEntry(ListEntry):
         self._anime = kwargs.get('anime')
         self._episodesWatched = kwargs.get('episodesWatched', 0)
         self._rewatched = kwargs.get('rewatched', 0)
-        self._notes = kwargs.get('notes')
 
         self._updateData['id'] = self._anime.id
 
@@ -128,28 +128,16 @@ class AnimeListEntry(ListEntry):
     def rewatched(self):
         return self._rewatched
 
-    @property
-    def notes(self):
-        return self._notes
-
     @anime.setter
     def anime(self, anime):
         self._anime = anime
 
     @episodesWatched.setter
+    @Updatable
     def episodesWatched(self, episodesWatched):
         self._episodesWatched = episodesWatched
-        # TODO: find a way to improve this
-        self._updateData['episodes_watched'] = episodesWatched
 
     @rewatched.setter
+    @Updatable
     def rewatched(self, rewatched):
         self._rewatched = rewatched
-        # TODO: find a way to improve this
-        self._updateData['rewatched'] = rewatched
-
-    @notes.setter
-    def notes(self, value):
-        self._notes = value
-        # TODO: find a way to improve this
-        self._updateData['notes'] = value
