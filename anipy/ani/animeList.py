@@ -3,7 +3,6 @@ import logging
 from anipy.core import Resource
 from anipy.core import Updatable
 from anipy.utils import underscore_to_camelcase
-from anipy.exception import raise_from_response
 from anipy.ani.list import ListEntry
 from anipy.ani.anime import SmallAnime
 
@@ -46,37 +45,12 @@ class AnimeListResource(Resource):
     def planToWatchByUserId(self, id_):
         return self._listByUserIdAndListKey(id_, self._plan_to_watch_key)
 
-    def allByUserId(self):
+    def allByUserId(self, id_):
         rtn = {}
         listsDic = self._requestByUserIdOrDisplayName(id_).json()[self._all_lists_key]
         for k, v in listsDic:
             rtn[underscore_to_camelcase(k)] = (ListEntry.fromResponse(item) for item in v)
         return rtn
-
-    def update(self, entry):
-        return self.put(data=entry.updateData)
-
-    def create(self, entry):
-        data = {
-            'id': entry.anime.id,
-            'list_status': entry.listStatus.value,
-            'score': entry.score,
-            'score_raw': entry.scoreRaw,
-            'episodes_watched': entry.episodesWatched,
-            'rewatched': entry.rewatched,
-            'notes': entry.notes,
-            'hidden_default': entry.hiddenDefault }
-
-        response = requests.post(self._ENDPOINT, data=data, headers=self._headers)
-        raise_from_response(response)
-
-        return response
-
-    def delete(self, entry):
-        response = requests.delete(self._ENDPOINT + str(entry.anime.id), headers=self._headers)
-        raise_from_response(response)
-
-        return response
 
     def _listByUserIdAndListKey(self, id_, key):
         try:
@@ -100,7 +74,7 @@ class AnimeListEntry(ListEntry):
     """docstring for AnimeListEntry"""
 
     __composite__ = {'anime': SmallAnime}
-    _animeListResource = AnimeListResource()
+    _resource = AnimeListResource()
 
     def __init__(self, **kwargs):
         super(AnimeListEntry, self).__init__(**kwargs)

@@ -21,6 +21,17 @@ class ListStatus(Enum):
         return self.value
 
 
+class Smiley(Enum):
+    """Enumeration for entry's 5 stars score."""
+
+    like = ':)'
+    neutral = ':|'
+    unlike = ':('
+
+    def __str__(self):
+        return self.value
+
+
 class ListEntry(Entity):
     """docstring for ListEntry"""
     def __init__(self, dic=None, **kwargs):
@@ -34,25 +45,19 @@ class ListEntry(Entity):
 
         self._recordId = kwargs.get('recordId', None)
         self._listStatus = listStatus
+        self._scoreRaw = kwargs.get('scoreRaw', 0)
         self._score = kwargs.get('score', 0)
-        self._priorty = kwargs.get('priorty', None)
         self._notes = kwargs.get('notes', None)
-        self._private = kwargs.get('private', None)
         self._updatedTime = kwargs.get('updatedTime', None)
         self._addedTime = kwargs.get('addedTime', None)
-        self._scoreRaw = kwargs.get('scoreRaw', 0)
         self._advancedRatingScores = kwargs.get('advancedRatingScores', [0, 0, 0, 0, 0])
-        self._hiddenDefault = kwargs.get('hiddenDefault', False)
         self._customLists = kwargs.get('customLists', [0, 0, 0, 0, 0])
 
-    @property
-    def save(self):
-        self._animeListResource(self)
 
     @property
     def recordId(self):
         return self._recordId
-    
+
     @recordId.setter
     def recordId(self, recordId):
         self._recordId = recordId
@@ -60,7 +65,7 @@ class ListEntry(Entity):
     @property
     def listStatus(self):
         return self._listStatus
-    
+
     @listStatus.setter
     @Updatable
     def listStatus(self, listStatus):
@@ -69,40 +74,28 @@ class ListEntry(Entity):
     @property
     def score(self):
         return self._score
-    
-    @score.setter
-    def score(self, score):
-        self._score = score
 
-    @property
-    def priorty(self):
-        return self._priorty
-    
-    @priorty.setter
-    def priorty(self, priorty):
-        self._priorty = priorty
+    @score.setter
+    @Updatable
+    def score(self, score):
+        if isinstance(score, Enum):
+            self._score = score.value
+        else:
+            self._score = score
 
     @property
     def notes(self):
         return self._notes
-    
+
     @notes.setter
     @Updatable
     def notes(self, notes):
         self._notes = notes
 
     @property
-    def private(self):
-        return self._private
-    
-    @private.setter
-    def private(self, private):
-        self._private = private
-
-    @property
     def updatedTime(self):
         return self._updatedTime
-    
+
     @updatedTime.setter
     def updatedTime(self, updatedTime):
         self._updatedTime = updatedTime
@@ -110,7 +103,7 @@ class ListEntry(Entity):
     @property
     def addedTime(self):
         return self._addedTime
-    
+
     @addedTime.setter
     def addedTime(self, addedTime):
         self._addedTime = addedTime
@@ -118,7 +111,7 @@ class ListEntry(Entity):
     @property
     def scoreRaw(self):
         return self._scoreRaw
-    
+
     @scoreRaw.setter
     def scoreRaw(self, scoreRaw):
         self._scoreRaw = scoreRaw
@@ -126,23 +119,15 @@ class ListEntry(Entity):
     @property
     def advancedRatingScores(self):
         return self._advancedRatingScores
-    
+
     @advancedRatingScores.setter
     def advancedRatingScores(self, advancedRatingScores):
         self._advancedRatingScores = advancedRatingScores
 
     @property
-    def hiddenDefault(self):
-        return self._hiddenDefault
-    
-    @hiddenDefault.setter
-    def hiddenDefault(self, hiddenDefault):
-        self._hiddenDefault = hiddenDefault
-
-    @property
     def customLists(self):
         return self._customLists
-    
+
     @customLists.setter
     def customLists(self, customLists):
         self._customLists = customLists

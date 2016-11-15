@@ -63,6 +63,9 @@ class Resource(metaclass=ABCMeta):
             'Authorization': '%s %s' % (auth.tokenType, auth.accessToken),
             'Content-Type': 'application/json'}
 
+    def update(self, entity):
+        return self.put(data=entity.updateData)
+
     def request(self, method, endpoint=None, data=None, headers=None):
         """
         Makes a *method* request to *endpoint* with *data* and *headers*.
@@ -162,6 +165,7 @@ class Entity(metaclass=ABCMeta):
 
     __composite__ = {}
     """Define how different implementations of this class compose each other. See :any:`fromResponse`"""
+    _resource = None
 
     def __init__(self, **kwargs):
         """
@@ -224,6 +228,12 @@ class Entity(metaclass=ABCMeta):
         :return: :obj:`dict` with the new values of the updatable fields.
         """
         return self._updateData
+
+    @property
+    def save(self):
+        self._resource.put(data=self.updateData)
+
+
 
 
 class Updatable(object):
