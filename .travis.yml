@@ -1,0 +1,16 @@
+ language: python
+  python:
+ -  - "2.6"
+ -  - "2.7"
+ -  - "3.2"
+    - "3.3"
+    - "3.4"
+    - "3.5"
+ install:
+  - pip install -r requirements.txt
+  - pip install coveralls codeclimate-test-reporter
+ script: nosetests -v -w anipy --with-coverage 
+ addons:
+   code_climate:
+     repo_token: 8ea8d6feca60383c0a8bdb3fe1c3dfd093e3ebab08f447d3c12d6376648df4c1
+  
