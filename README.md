@@ -1,6 +1,8 @@
 # Anipy
 [![Python Version](https://img.shields.io/badge/python-3.3%2C%203.4%2C%203.5-blue.svg)]()
 [![Project License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/twissell-/anipy/master/LICENSE)
+[![Code Climate](https://codeclimate.com/github/twissell-/anipy/badges/gpa.svg)](https://codeclimate.com/github/twissell-/anipy)
+[![Test Coverage](https://codeclimate.com/github/twissell-/anipy/badges/coverage.svg)](https://codeclimate.com/github/twissell-/anipy/coverage)
 
 
 Anipy is a python library that wraps and organize the [Anilist] rest api into modules, classes and functions so it can be used quick, easy, and right out of the box. You can take a look at the api [official docs]. **Anilist is a [Josh Star]'s project**
