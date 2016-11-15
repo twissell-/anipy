@@ -1,3 +1,5 @@
 urllib3
 requests
-codeclimate-test-reporter
+nose
+urllib3_mock
+
