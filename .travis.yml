@@ -7,12 +7,13 @@
     - "3.4"
     - "3.5"
  env:
-    CODECLIMATE_REPO_TOKEN=8ea8d6feca60383c0a8bdb3fe1c3dfd093e3ebab08f447d3c12d6376648df4c1 codeclimate-test-reporter
+    CODECLIMATE_REPO_TOKEN=8ea8d6feca60383c0a8bdb3fe1c3dfd093e3ebab08f447d3c12d6376648df4c1
  install:
     - pip install -r requirements.txt
     - pip install coveralls codeclimate-test-reporter
  script:
     - nosetests -v -w anipy --with-coverage
+    - codeclimate-test-reporter
  addons:
    code_climate:
      repo_token: 8ea8d6feca60383c0a8bdb3fe1c3dfd093e3ebab08f447d3c12d6376648df4c1
