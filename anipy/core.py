@@ -95,7 +95,7 @@ class Resource(metaclass=ABCMeta):
 
         logger.debug('Resource request: %s %s' % (method, endpoint))
         logger.debug('Resource request body: %s' % str(data))
-        logger.debug('Resource request headers: %s' % ((headers)))
+        logger.debug('Resource request headers: %s' % headers)
 
         response = self._pool.request(
             method,
@@ -164,6 +164,7 @@ class Entity(metaclass=ABCMeta):
     """Define how different implementations of this class compose each other. See :any:`fromResponse`"""
 
     def __init__(self, **kwargs):
+        # TODO: see if i can remove keyword args
         """
         All sub classes **must** override this method. Here is where the json response from the api, converted to a dict
         is mapped to the private attributes of each implementation.
@@ -241,12 +242,11 @@ class Updatable(object):
     def __call__(self, *args):
         self._setter(*args)
         if isinstance(args[1], Enum):
-            args[0]._updateData[self._key] = args[1].value
+            args[0].updateData[self._key] = args[1].value
         else:
-            args[0]._updateData[self._key] = args[1]
+            args[0].updateData[self._key] = args[1]
 
-        self._logger.debug('Update data changed: ' + str(args[0]._updateData))
-
+        self._logger.debug('Update data changed: ' + str(args[0].updateData))
 
 
 class GrantType(Enum):
@@ -341,7 +341,7 @@ class AuthenticationProvider(object):
         """
         return cls._instance._refreshRequest(refreshToken, clientId, clientSecret)
 
-    def _authRequest(self, data ):
+    def _authRequest(self, data):
         self._logger.debug('Auth request method: ' + 'POST')
         self._logger.debug('Auth request url: ' + self._ENDPOINT)
         self._logger.debug('Auth request: \n' + pprint.pformat(data))
@@ -386,7 +386,6 @@ class AuthenticationProvider(object):
             'code': code}
 
         return self._authRequest(data)
-
 
     def _pinRequest(self, pin, clientId=None, clientSecret=None, redirectUri=None):
         clientId = self.clientId if clientId is None else clientId
@@ -434,6 +433,9 @@ class Authentication(object):
         Generates a :any:`Authentication` instance from a authentication code.
 
         :param code: :obj:`str` the authentication code
+        :param clientId: *Optional.*
+        :param clientSecret: *Optional.*
+        :param redirectUri: *Optional.*
         :return: :any:`Authentication`
         """
         return AuthenticationProvider(
@@ -444,7 +446,10 @@ class Authentication(object):
         """
         Generates a :any:`Authentication` instance from a authentication pin.
 
-        :param code: :obj:`str` the authentication pin
+        :param pin: :obj:`str` the authentication pin
+        :param clientId: *Optional.*
+        :param clientSecret: *Optional.*
+        :param redirectUri: *Optional.*
         :return: :any:`Authentication`
         """
         return AuthenticationProvider(
@@ -466,7 +471,7 @@ class Authentication(object):
         """
         Generates a :any:`Authentication` instance from a refresh token.
 
-        :param code: :obj:`str` the refresh token
+        :param refreshToken: :obj:`str` the refresh token
         :return: :any:`Authentication`
         """
         return AuthenticationProvider(GrantType.refreshToken).authenticate(refreshToken)
