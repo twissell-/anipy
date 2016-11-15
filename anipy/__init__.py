@@ -3,6 +3,7 @@ from anipy.core import AuthenticationProvider
 from anipy.core import GrantType
 from anipy.ani.user import User
 from anipy.ani.list import ListStatus
+from anipy.ani.list import Smiley
 from anipy.ani.animeList import AnimeListResource
 
 import logging
