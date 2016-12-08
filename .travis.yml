@@ -2,13 +2,16 @@
  python:
     - "3.5"
  env:
-    CODECLIMATE_REPO_TOKEN=8ea8d6feca60383c0a8bdb3fe1c3dfd093e3ebab08f447d3c12d6376648df4c1
+    CODACY_PROJECT_TOKEN=343d744f6da04a349a4a831eb93c7a00
+
  install:
     - pip install -r requirements.txt
-    - pip install coveralls codeclimate-test-reporter
+    - pip install coveralls install codacy-coverage
+
  script:
-    - nosetests -v -w anipy --with-coverage
-    - codeclimate-test-reporter
+    - nosetests -v -w anipy --with-coverage --cover-xml
+    - python-codacy-coverage -r coverage.xml
+
  addons:
    code_climate:
      repo_token: 8ea8d6feca60383c0a8bdb3fe1c3dfd093e3ebab08f447d3c12d6376648df4c1
