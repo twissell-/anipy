@@ -40,7 +40,7 @@ class Resource(metaclass=ABCMeta):
     """Default endpoint for each resource implementation."""
 
     def __init__(self):
-        super(Resource, self).__init__()
+        super().__init__()
         self._pool = urllib3.connectionpool.connection_from_url(Resource._URL, maxsize=5)
 
     @property
@@ -92,8 +92,8 @@ class Resource(metaclass=ABCMeta):
         :return: (:obj:`dict`) Response.
         """
 
-        headers = self._headers if headers is None else headers
-        endpoint = self._ENDPOINT if endpoint is None else endpoint
+        headers = headers or self._headers
+        endpoint = endpoint or self._ENDPOINT
         data = dic_to_json(data)
 
         logger.debug('Resource request: %s %s' % (method, endpoint))
@@ -176,13 +176,13 @@ class Entity(metaclass=ABCMeta):
         Implementation example::
 
             def __init__(self, **kwargs):
-                super(User, self).__init__(**kwargs)
-                self._id = kwargs.get('id', None)
-                self._displayName = kwargs.get('displayName', None)
+                super().__init__(**kwargs)
+                self._id = kwargs.get('id')
+                self._displayName = kwargs.get('displayName')
 
         :param kwargs: dict with values from the json entity to be mapped.
         """
-        super(Entity, self).__init__()
+        super().__init__()
         self._updateData = {}
 
     @classmethod
@@ -210,7 +210,7 @@ class Entity(metaclass=ABCMeta):
             if k in cls.__composite__:
                 dic[underscore_to_camelcase(k)] = cls.__composite__[k].fromResponse(response.get(k))
             else:
-                dic[underscore_to_camelcase(k)] = response.get(k, None)
+                dic[underscore_to_camelcase(k)] = response.get(k)
 
         return cls(**dic)
 
@@ -298,7 +298,7 @@ class AuthenticationProvider(object):
         return cls._instance
 
     def __init__(self, grantType):
-        super(AuthenticationProvider, self).__init__()
+        super().__init__()
 
         self._grantType = grantType
         self._currentAuth = None
@@ -372,8 +372,8 @@ class AuthenticationProvider(object):
         return auth
 
     def _refreshRequest(self, refreshToken, clientId=None, clientSecret=None):
-        clientId = self.clientId if clientId is None else clientId
-        clientSecret = self.clientSecret if clientSecret is None else clientSecret
+        clientId = clientId or self.clientId
+        clientSecret = clientSecret or self.clientSecret
 
         data = {
             'grant_type': GrantType.refreshToken.value,
@@ -384,9 +384,9 @@ class AuthenticationProvider(object):
         return self._authRequest(data)
 
     def _codeRequest(self, code, clientId=None, clientSecret=None, redirectUri=None):
-        clientId = self.clientId if clientId is None else clientId
-        clientSecret = self.clientSecret if clientSecret is None else clientSecret
-        redirectUri = self.redirectUri if redirectUri is None else redirectUri
+        clientId = clientId or self.clientId
+        clientSecret = clientSecret or self.clientSecret
+        redirectUri = redirectUri or self.redirectUri
 
         data = {
             'grant_type': GrantType.authorizationCode.value,
@@ -398,9 +398,9 @@ class AuthenticationProvider(object):
         return self._authRequest(data)
 
     def _pinRequest(self, pin, clientId=None, clientSecret=None, redirectUri=None):
-        clientId = self.clientId if clientId is None else clientId
-        clientSecret = self.clientSecret if clientSecret is None else clientSecret
-        redirectUri = self.redirectUri if redirectUri is None else redirectUri
+        clientId = clientId or self.clientId
+        clientSecret = clientSecret or self.clientSecret
+        redirectUri = redirectUri or self.redirectUri
 
         data = {
             'grant_type': GrantType.authorizationPin.value,
@@ -412,8 +412,8 @@ class AuthenticationProvider(object):
         return self._authRequest(data)
 
     def _clientCredentialsRequest(self, clientId=None, clientSecret=None):
-        clientId = self.clientId if clientId is None else clientId
-        clientSecret = self.clientSecret if clientSecret is None else clientSecret
+        clientId = clientId or self.clientId
+        clientSecret = clientSecret or self.clientSecret
 
         data = {
             'grant_type': GrantType.clientCredentials.value,
@@ -429,12 +429,12 @@ class Authentication(object):
     """
 
     def __init__(self, **kwargs):
-        super(Authentication, self).__init__()
-        self._accessToken = kwargs.get('access_token', None)
-        self._tokenType = kwargs.get('token_type', None)
-        self._expiresIn = kwargs.get('expires_in', None)
-        self._refreshToken = kwargs.get('refresh_token', None)
-        exp = kwargs.get('expires', None)
+        super().__init__()
+        self._accessToken = kwargs.get('access_token')
+        self._tokenType = kwargs.get('token_type')
+        self._expiresIn = kwargs.get('expires_in')
+        self._refreshToken = kwargs.get('refresh_token')
+        exp = kwargs.get('expires')
         self._expires = exp if exp is None else datetime.fromtimestamp(exp)
 
     @classmethod

@@ -10,7 +10,7 @@ class UserResource(Resource):
     _ENDPOINT = '/api/user/'
 
     def __init__(self):
-        super(UserResource, self).__init__()
+        super().__init__()
 
     def __new__(type):
         if not '_instance' in type.__dict__:
@@ -36,25 +36,25 @@ class User(Entity):
     _animeListResource = AnimeListResource()
 
     def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
-        self._id = kwargs.get('id', None)
-        self._displayName = kwargs.get('displayName', None)
-        self._animeTime = kwargs.get('animeTime', None)
-        self._mangaChap = kwargs.get('mangaChap', None)
-        self._about = kwargs.get('about', None)
-        self._listOrder = kwargs.get('listOrder', None)
-        self._adultContent = kwargs.get('adultContent', None)
-        self._following = kwargs.get('following', None)
-        self._imageUrlLge = kwargs.get('imageUrlLge', None)
-        self._imageUrlMed = kwargs.get('imageUrlMed', None)
-        self._imageUrlBanner = kwargs.get('imageUrlBanner', None)
-        self._titleLanguage = kwargs.get('titleLanguage', None)
-        self._scoreType = kwargs.get('scoreType', None)
-        self._customListAnime = kwargs.get('customListAnime', None)
-        self._customListManga = kwargs.get('customListManga', None)
-        self._advancedRating = kwargs.get('advancedRating', None)
-        self._advancedRatingNames = kwargs.get('advancedRatingNames', None)
-        self._notifications = kwargs.get('notifications', None)
+        super().__init__(**kwargs)
+        self._id = kwargs.get('id')
+        self._displayName = kwargs.get('displayName')
+        self._animeTime = kwargs.get('animeTime')
+        self._mangaChap = kwargs.get('mangaChap')
+        self._about = kwargs.get('about')
+        self._listOrder = kwargs.get('listOrder')
+        self._adultContent = kwargs.get('adultContent')
+        self._following = kwargs.get('following')
+        self._imageUrlLge = kwargs.get('imageUrlLge')
+        self._imageUrlMed = kwargs.get('imageUrlMed')
+        self._imageUrlBanner = kwargs.get('imageUrlBanner')
+        self._titleLanguage = kwargs.get('titleLanguage')
+        self._scoreType = kwargs.get('scoreType')
+        self._customListAnime = kwargs.get('customListAnime')
+        self._customListManga = kwargs.get('customListManga')
+        self._advancedRating = kwargs.get('advancedRating')
+        self._advancedRatingNames = kwargs.get('advancedRatingNames')
+        self._notifications = kwargs.get('notifications')
 
     @classmethod
     def resource(cls):

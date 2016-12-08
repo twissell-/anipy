@@ -35,21 +35,21 @@ class Smiley(Enum):
 class ListEntry(Entity):
     """docstring for ListEntry"""
     def __init__(self, dic=None, **kwargs):
-        super(ListEntry, self).__init__()
+        super().__init__()
         if not dic is None:
             kwargs = dic
 
-        listStatus = kwargs.get('listStatus', None)
+        listStatus = kwargs.get('listStatus')
         if listStatus not in list(ListStatus) and listStatus is not None:
             listStatus = ListStatus(listStatus)
 
-        self._recordId = kwargs.get('recordId', None)
+        self._recordId = kwargs.get('recordId')
         self._listStatus = listStatus
         self._scoreRaw = kwargs.get('scoreRaw', 0)
         self._score = kwargs.get('score', 0)
-        self._notes = kwargs.get('notes', None)
-        self._updatedTime = kwargs.get('updatedTime', None)
-        self._addedTime = kwargs.get('addedTime', None)
+        self._notes = kwargs.get('notes')
+        self._updatedTime = kwargs.get('updatedTime')
+        self._addedTime = kwargs.get('addedTime')
         self._advancedRatingScores = kwargs.get('advancedRatingScores', [0, 0, 0, 0, 0])
         self._customLists = kwargs.get('customLists', [0, 0, 0, 0, 0])
 
@@ -136,10 +136,10 @@ class ListEntry(Entity):
 class MangaListEntry(ListEntry):
     """docstring for MangaListEntry"""
     def __init__(self, **kwargs):
-        super(MangaListEntry, self).__init__(**kwargs)
-        self._manga = kwargs.get('manga', None)
-        self._chaptersRead = kwargs.get('chaptersRead', None)
-        self._volumesRead = kwargs.get('volumesRead', None)
-        self._reread = kwargs.get('reread', None)
+        super().__init__(**kwargs)
+        self._manga = kwargs.get('manga')
+        self._chaptersRead = kwargs.get('chaptersRead')
+        self._volumesRead = kwargs.get('volumesRead')
+        self._reread = kwargs.get('reread')
 
 

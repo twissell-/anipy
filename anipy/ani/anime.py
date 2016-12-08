@@ -7,26 +7,26 @@ from anipy.utils import underscore_to_camelcase
 class SmallAnime(Entity):
     """docstring for SmallAnime"""
     def __init__(self, dic=None, **kwargs):
-        super(SmallAnime, self).__init__()
+        super().__init__()
         if not dic is None:
             kwargs = dic
 
-        self._id = kwargs.get('id', None)
-        self._titleRomaji = kwargs.get('titleRomaji', None)
-        self._type = kwargs.get('type', None)
-        self._imageUrlMed = kwargs.get('imageUrlMed', None)
-        self._imageUrlSml = kwargs.get('imageUrlSml', None)
-        self._adult = kwargs.get('adult', None)
-        self._popularity = kwargs.get('popularity', None)
-        self._titleJapanese = kwargs.get('titleJapanese', None)
-        self._titleEnglish = kwargs.get('titleEnglish', None)
-        self._synonyms = kwargs.get('synonyms', None)
-        self._imageUrlLge = kwargs.get('imageUrlLge', None)
-        self._airingStatus = kwargs.get('airingStatus', None)
-        self._averageScore = kwargs.get('averageScore', None)
-        self._totalEpisodes = kwargs.get('totalEpisodes', None)
-        self._relationType = kwargs.get('relationType', None)
-        self._role = kwargs.get('role', None)
+        self._id = kwargs.get('id')
+        self._titleRomaji = kwargs.get('titleRomaji')
+        self._type = kwargs.get('type')
+        self._imageUrlMed = kwargs.get('imageUrlMed')
+        self._imageUrlSml = kwargs.get('imageUrlSml')
+        self._adult = kwargs.get('adult')
+        self._popularity = kwargs.get('popularity')
+        self._titleJapanese = kwargs.get('titleJapanese')
+        self._titleEnglish = kwargs.get('titleEnglish')
+        self._synonyms = kwargs.get('synonyms')
+        self._imageUrlLge = kwargs.get('imageUrlLge')
+        self._airingStatus = kwargs.get('airingStatus')
+        self._averageScore = kwargs.get('averageScore')
+        self._totalEpisodes = kwargs.get('totalEpisodes')
+        self._relationType = kwargs.get('relationType')
+        self._role = kwargs.get('role')
 
     def __repr__(self):
         return '<%s %s \'%s\'>' % (
@@ -42,7 +42,7 @@ class SmallAnime(Entity):
         dic = {}
 
         for k in response:
-            dic[underscore_to_camelcase(k)] = response.get(k, None)
+            dic[underscore_to_camelcase(k)] = response.get(k)
 
         return cls(dic=dic)
 

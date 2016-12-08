@@ -23,7 +23,7 @@ class AnimeListResource(Resource):
     _plan_to_watch_key = 'plan_to_watch'
 
     def __init__(self):
-        super(AnimeListResource, self).__init__()
+        super().__init__()
 
     def __new__(type):
         if not '_instance' in type.__dict__:
@@ -77,7 +77,7 @@ class AnimeListEntry(ListEntry):
     _resource = AnimeListResource()
 
     def __init__(self, **kwargs):
-        super(AnimeListEntry, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._anime = kwargs.get('anime')
         self._episodesWatched = kwargs.get('episodesWatched', 0)
         self._rewatched = kwargs.get('rewatched', 0)
