@@ -9,6 +9,6 @@
     - pip install coveralls codacy-coverage
 
  script:
-    - nosetests -v -w anipy --with-coverage --cover-xml
-    - python-codacy-coverage -r coverage.xml
+    - nosetests -q --where=test --with-coverage --cover-package=anipy --cover-xml
+    - python-codacy-coverage -r test/coverage.xml
 
