@@ -1,7 +1,7 @@
 # Anipy
 [![Build Status](https://travis-ci.org/twissell-/anipy.svg?branch=master)](https://travis-ci.org/twissell-/anipy)
-[![Code Climate](https://codeclimate.com/github/twissell-/anipy/badges/gpa.svg)](https://codeclimate.com/github/twissell-/anipy)
-[![Test Coverage](https://codeclimate.com/github/twissell-/anipy/badges/coverage.svg)](https://codeclimate.com/github/twissell-/anipy/coverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d811779af6ee4c14a03137894930bb04)](https://www.codacy.com/app/dmaggioesne/anipy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=twissell-/anipy&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/d811779af6ee4c14a03137894930bb04)](https://www.codacy.com/app/dmaggioesne/anipy?utm_source=github.com&utm_medium=referral&utm_content=twissell-/anipy&utm_campaign=Badge_Coverage)
 [![Python Version](https://img.shields.io/badge/python-3.5-blue.svg)]()
 [![Project License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/twissell-/anipy/master/LICENSE)
 

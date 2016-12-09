@@ -39,7 +39,7 @@ def raise_from_response(response):
     if not isinstance(response, HTTPResponse):
         raise ValueError('Response must be instance of HTTPResponse intead of %s' % type(response))
 
-    if 400 > response.status or response.status >= 600:
+    if response.status < 400 or response.status >= 600:
         return
 
     logger.debug('Response status: ' + str(response.status))
@@ -48,7 +48,7 @@ def raise_from_response(response):
     if response.status == 405:
         logger.error('HTTP 405 Method not allowed.')
         raise AniException('HTTP 405 Method not allowed.')
-    if response.status == 500 and 'text/html' in response.headers['content-type']:
+    if response.status == 500:
         raise InternalServerError('Anilist.co return a 500 Response and a html. No extra information was given.')
 
     response = response_to_dic(response)

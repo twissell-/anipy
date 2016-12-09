@@ -235,8 +235,6 @@ class Entity(metaclass=ABCMeta):
         self._resource.put(data=self.updateData)
 
 
-
-
 class Updatable(object):
     """
     This class decorates setters to automatically add value changes to ``_updateData``.

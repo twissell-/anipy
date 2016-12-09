@@ -3,11 +3,17 @@ from datetime import datetime
 
 from anipy import AuthenticationProvider
 from anipy import Authentication
+from anipy.exception import AniException
+from anipy.exception import InternalServerError
+from anipy.exception import InvalidGrantException
+from anipy.exception import InvalidRequestException
+from anipy.exception import UnauthorizedException
 
 
 class TestAuthentication(object):
 
     responses = Responses('urllib3')
+    AuthenticationProvider.config('clientId', 'clientSecret', 'redirectUri')
 
     @responses.activate
     def testValidAuthentication(self):
@@ -17,8 +23,6 @@ class TestAuthentication(object):
             status=200,
             content_type='application/json')
 
-        AuthenticationProvider.config('clientId', 'clientSecret', 'redirectUri')
-
         auth = Authentication.fromCode('authenticationcode')
 
         assert auth.accessToken == 'anaccesstoken'
@@ -27,4 +31,74 @@ class TestAuthentication(object):
         assert auth.expires == datetime.fromtimestamp(9999999999)
         assert not auth.isExpired
 
+    @responses.activate
+    def testInternalServerError(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            status=500)
 
+        try:
+            Authentication.fromCode('authenticationcode')
+        except Exception as e:
+            assert isinstance(e, InternalServerError)
+        else:
+            assert False
+
+    @responses.activate
+    def testMethodNotAllowed(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            status=405)
+
+        try:
+            Authentication.fromCode('authenticationcode')
+        except Exception as e:
+            assert isinstance(e, AniException)
+            assert str(e) == 'HTTP 405 Method not allowed.'
+        else:
+            assert False
+
+    @responses.activate
+    def testInvalidGrantException(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            body=b'{"error":"invalid_grant"}',
+            status=400,
+            content_type='application/json')
+
+        try:
+            Authentication.fromCode('authenticationcode')
+        except Exception as e:
+            assert isinstance(e, InvalidGrantException)
+        else:
+            assert False
+
+    @responses.activate
+    def testInvalidRequest(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            body=b'{"error":"invalid_request"}',
+            status=400,
+            content_type='application/json')
+
+        try:
+            Authentication.fromCode('authenticationcode')
+        except Exception as e:
+            assert isinstance(e, InvalidRequestException)
+        else:
+            assert False
+
+    @responses.activate
+    def testInvalidGrantException(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            body=b'{"error":"unauthorized"}',
+            status=401,
+            content_type='application/json')
+
+        try:
+            Authentication.fromCode('authenticationcode')
+        except Exception as e:
+            assert isinstance(e, UnauthorizedException)
+        else:
+            assert False
