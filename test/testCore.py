@@ -16,10 +16,11 @@ class TestAuthentication(object):
     AuthenticationProvider.config('clientId', 'clientSecret', 'redirectUri')
 
     @responses.activate
-    def testValidAuthentication(self):
+    def testValidAuthenticationFromCode(self):
         TestAuthentication.responses.add(
             'POST', '/api/auth/access_token',
-            body=b'{"access_token":"anaccesstoken","token_type":"Bearer","expires_in":3600,"expires":9999999999}',
+            body=b'{"access_token":"anaccesstoken","token_type":"Bearer","expires_in":3600,"expires":9999999999,\
+                "refresh_token":"refreshtoken"}',
             status=200,
             content_type='application/json')
 
@@ -28,8 +29,65 @@ class TestAuthentication(object):
         assert auth.accessToken == 'anaccesstoken'
         assert auth.tokenType == 'Bearer'
         assert auth.expiresIn == 3600
+        assert auth.refreshToken == 'refreshtoken'
         assert auth.expires == datetime.fromtimestamp(9999999999)
         assert not auth.isExpired
+        assert auth is AuthenticationProvider.currentAuth()
+
+    @responses.activate
+    def testValidAuthenticationFromPin(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            body=b'{"access_token":"anaccesstoken","token_type":"Bearer","expires_in":3600,"expires":9999999999,\
+                "refresh_token":"refreshtoken"}',
+            status=200,
+            content_type='application/json')
+
+        auth = Authentication.fromPin('pin')
+
+        assert auth.accessToken == 'anaccesstoken'
+        assert auth.tokenType == 'Bearer'
+        assert auth.expiresIn == 3600
+        assert auth.refreshToken == 'refreshtoken'
+        assert auth.expires == datetime.fromtimestamp(9999999999)
+        assert not auth.isExpired
+        assert auth is AuthenticationProvider.currentAuth()
+
+    @responses.activate
+    def testValidAuthenticationCredentials(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            body=b'{"access_token":"anaccesstoken","token_type":"Bearer","expires_in":3600,"expires":9999999999}',
+            status=200,
+            content_type='application/json')
+
+        auth = Authentication.fromCredentials()
+
+        assert auth.accessToken == 'anaccesstoken'
+        assert auth.tokenType == 'Bearer'
+        assert auth.expiresIn == 3600
+        assert auth.expires == datetime.fromtimestamp(9999999999)
+        assert not auth.isExpired
+        assert auth is AuthenticationProvider.currentAuth()
+
+    @responses.activate
+    def testRefreshAuthentication(self):
+        TestAuthentication.responses.add(
+            'POST', '/api/auth/access_token',
+            body=b'{"access_token":"anaccesstoken","token_type":"Bearer","expires_in":3600,"expires":9999999999,\
+                "refresh_token":"refreshtoken"}',
+            status=200,
+            content_type='application/json')
+
+        auth = Authentication.fromRefreshToken('refreshtoken')
+
+        assert auth.accessToken == 'anaccesstoken'
+        assert auth.tokenType == 'Bearer'
+        assert auth.expiresIn == 3600
+        assert auth.refreshToken == 'refreshtoken'
+        assert auth.expires == datetime.fromtimestamp(9999999999)
+        assert not auth.isExpired
+        assert auth is AuthenticationProvider.currentAuth()
 
     @responses.activate
     def testInternalServerError(self):
