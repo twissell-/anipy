@@ -4,7 +4,7 @@ from anipy.core import Resource
 from anipy.core import Updatable
 from anipy.utils import underscore_to_camelcase
 from anipy.ani.list import ListEntry
-from anipy.ani.anime import SmallAnime
+from anipy.ani.serie import SmallAnime
 
 logger = logging.getLogger(__name__)
 
@@ -55,11 +55,13 @@ class AnimeListResource(Resource):
     def _listByUserIdAndListKey(self, id_, key):
         try:
             return list(AnimeListEntry.fromResponse(item) for item in self._requestByUserIdOrDisplayName(id_)[self._all_lists_key][key])
-        except TypeError:
+        except TypeError as e:
             logger.warning('User has no anime lists.')
+            logger.debug(e)
             return []
-        except KeyError:
+        except KeyError as e:
             logger.warning('Anime list \'%s\' is empty.' % key)
+            logger.debug(e)
             return []
 
     def _requestByUserIdOrDisplayName(self, displayName, raw=False):

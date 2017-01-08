@@ -34,10 +34,8 @@ class Smiley(Enum):
 
 class ListEntry(Entity):
     """docstring for ListEntry"""
-    def __init__(self, dic=None, **kwargs):
-        super().__init__()
-        if not dic is None:
-            kwargs = dic
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         listStatus = kwargs.get('listStatus')
         if listStatus not in list(ListStatus) and listStatus is not None:

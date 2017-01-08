@@ -147,7 +147,7 @@ class TestAuthentication(object):
             assert False
 
     @responses.activate
-    def testInvalidGrantException(self):
+    def testInvalidUnauthorizedException(self):
         TestAuthentication.responses.add(
             'POST', '/api/auth/access_token',
             body=b'{"error":"unauthorized"}',

@@ -106,22 +106,23 @@ Here is a sumary of the project state.
       - [x] Update rewatched
       - [x] Update notes
       - [x] Update list status
-      - [ ] Update score (simple)
+      - [x] Update score (simple)
       - [ ] Create a entry
       - [ ] Remove entry
     - [ ] Mangalist
     - [ ] List Scores types
   - [ ] **Anime**
     - [ ] Basics
-    - [ ] Airing
+    - [ ] Browse
     - [ ] Search
   - [ ] **Manga**
     - [ ] Basics
+    - [ ] Browse
     - [ ] Search
 
 ### Out of Scope
 
-Thing that I'm going to do soon.
+Thing that I'm not going to do soon.
 
   - Advance rating score
   - Custom lists
