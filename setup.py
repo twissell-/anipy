@@ -26,6 +26,7 @@ setup(name='anipy',
       packages=['anipy'],
       install_requires=[
           'urllib3',
+          'urllib3_mock',
           'requests'
       ],
       test_suite='nose.collector',
