@@ -1,5 +1,5 @@
-urllib3
 requests
-nose
+setuptools
+urllib3
 urllib3_mock
 
