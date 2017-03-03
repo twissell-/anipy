@@ -100,7 +100,42 @@ class SmallSerie(Entity):
         return self._updateAt
 
 
-# TODO: add here Serie(SmallSerie), Anime(Serie, SmallAnime) and Manga(Serie, SmallManga)
+class Serie(SmallSerie):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._season = kwargs.get('season')
+        self._description = kwargs.get('description')
+        self._favourite = kwargs.get('favourite')
+        self._imageUrlBanner = kwargs.get('image_url_banner')
+        self._scoreDistribution = kwargs.get('score_distribution')
+        self._listStats = kwargs.get('list_stats')
+
+    @property
+    def season(self):
+        return self._season
+
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def favourite(self):
+        return self._favourite
+
+    @property
+    def imageUrlBanner(self):
+        return self._imageUrlBanner
+
+    @property
+    def scoreDistribution(self):
+        return self._scoreDistribution
+
+    @property
+    def listStats(self):
+        return self._listStats
+
 
 class SmallAnime(SmallSerie):
     """docstring for SmallAnime"""
@@ -141,3 +176,46 @@ class SmallManga(SmallSerie):
     @property
     def publishingStatus(self):
         return self._publishingStatus
+
+
+class Anime(Serie, SmallAnime):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._duration = kwargs.get('duration')
+        self._youtubeId = kwargs.get('youtube_id')
+        self._hashtag = kwargs.get('hashtag')
+        self._source = kwargs.get('source')
+        self._airingStats = kwargs.get('airing_stats')
+
+    @property
+    def duration(self):
+        return self._duration
+
+    @property
+    def youtubeId(self):
+        return self._youtubeId
+
+    @property
+    def hashtag(self):
+        return self._hashtag
+
+    @property
+    def source(self):
+        return self._source
+
+    @property
+    def airingStats(self):
+        return self._airingStats
+
+
+class Manga(Serie, SmallManga):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._totalVolumes = kwargs.get('total_volumes')
+
+    @property
+    def totalVolumes(self):
+        return self._totalVolumes
