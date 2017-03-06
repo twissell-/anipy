@@ -32,7 +32,7 @@ class Resource(metaclass=ABCMeta):
 
     """
 
-    _URL = 'http://anilist.co'
+    _URL = 'https://anilist.co'
     """*Constant.* Base url that is used for all requests. Each resource **must** define it own endpoint based on this
     url."""
 
@@ -41,7 +41,7 @@ class Resource(metaclass=ABCMeta):
 
     def __init__(self):
         super().__init__()
-        self._pool = urllib3.connectionpool.connection_from_url(Resource._URL, maxsize=5)
+        self._pool = urllib3.PoolManager().connection_from_url(Resource._URL)
 
     @property
     def _headers(self):
@@ -279,9 +279,9 @@ class AuthenticationProvider(object):
     *Singleton*. Builder for the Authentication class. Works like a :any:`Resource` but with many specific behavior.
     """
 
-    _URL = 'http://anilist.co'
+    _URL = 'https://anilist.co'
     _ENDPOINT = '/api/auth/access_token'
-    _pool = urllib3.connectionpool.connection_from_url(_URL)
+    _pool = urllib3.PoolManager().connection_from_url(_URL)
     _instance = None
 
     clientId = None
