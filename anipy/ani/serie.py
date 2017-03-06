@@ -1,16 +1,7 @@
 from datetime import datetime
-from enum import Enum
 
-import requests
-
+from ani.enum_ import SeriesType
 from anipy.core import Entity
-from anipy.utils import underscore_to_camelcase
-
-
-class SeriesType(Enum):
-    """Enumeration for entry's list status."""
-    manga = 'manga'
-    anime = 'anime'
 
 
 class SmallSerie(Entity):
