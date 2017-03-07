@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from ani.enum_ import SeriesType
-from anipy.core import Entity
+from .enum_ import SeriesType
+from ..core import Entity
 
 
 class SmallSerie(Entity):

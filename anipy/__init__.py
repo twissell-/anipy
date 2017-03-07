@@ -1,10 +1,10 @@
-from anipy.core import Authentication
-from anipy.core import AuthenticationProvider
-from anipy.core import GrantType
-from anipy.ani.user import User
-from anipy.ani.list import ListStatus
-from anipy.ani.list import Smiley
-from anipy.ani.animeList import AnimeListResource
+from .core import Authentication
+from .core import AuthenticationProvider
+from .core import GrantType
+from .ani.user import User
+from .ani.enum_ import ListStatus
+from .ani.enum_ import Smiley
+from .ani.animeList import AnimeListResource
 
 import logging
 logging.basicConfig(

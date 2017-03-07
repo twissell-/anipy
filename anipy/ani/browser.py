@@ -1,11 +1,12 @@
 import logging
 from enum import Enum
 
-from core import Resource
-from utils import camelcase_to_underscore
+from ..core import Resource
+from ..utils import camelcase_to_underscore
 
 
 logger = logging.getLogger(__name__)
+
 
 class QueryFileld(object):
     """

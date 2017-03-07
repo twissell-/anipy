@@ -7,12 +7,16 @@ from enum import Enum
 from datetime import datetime
 from abc import ABCMeta
 
-from anipy.utils import underscore_to_camelcase
-from anipy.utils import camelcase_to_underscore
-from anipy.utils import dic_to_json
-from anipy.utils import response_to_dic
-from anipy.exception import raise_from_response
-from anipy.exception import NotAuthenticatedException
+from .utils import (
+    underscore_to_camelcase,
+    camelcase_to_underscore,
+    dic_to_json,
+    response_to_dic
+)
+from .exception import (
+    raise_from_response,
+    NotAuthenticatedException
+)
 
 logger = logging.getLogger(__name__)
 

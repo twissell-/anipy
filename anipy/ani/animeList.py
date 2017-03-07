@@ -1,10 +1,12 @@
 import logging
 
-from anipy.core import Resource
-from anipy.core import Updatable
-from anipy.utils import underscore_to_camelcase
-from anipy.ani.list import ListEntry
-from anipy.ani.serie import SmallAnime
+from ..core import (
+    Resource,
+    Updatable
+)
+from ..utils import underscore_to_camelcase
+from .list import ListEntry
+from .serie import SmallAnime
 
 logger = logging.getLogger(__name__)
 

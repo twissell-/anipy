@@ -40,6 +40,7 @@ class Season(Enum):
     summer = 'summer'
     fall = 'fall'
 
+
 class MediaType(Enum):
     tv = 0
     tvShort = 1
@@ -63,7 +64,7 @@ class AnimeStatus(Enum):
     cancelled = 'cancelled'
 
 
-class Mangatatus(Enum):
+class MangaStatus(Enum):
     finishedPublishing = 'finished publishing'
     publishing = 'publishing'
     notYetPublished = 'not yet published'

@@ -1,8 +1,10 @@
 from enum import Enum
 
-from anipy import ListStatus
-from anipy.core import Entity
-from anipy.core import Updatable
+import anipy
+from ..core import (
+    Entity,
+    Updatable
+)
 
 
 class ListEntry(Entity):
@@ -11,8 +13,8 @@ class ListEntry(Entity):
         super().__init__(**kwargs)
 
         listStatus = kwargs.get('listStatus')
-        if listStatus not in list(ListStatus) and listStatus is not None:
-            listStatus = ListStatus(listStatus)
+        if listStatus not in list(anipy.ListStatus) and listStatus is not None:
+            listStatus = anipy.ListStatus(listStatus)
 
         self._recordId = kwargs.get('recordId')
         self._listStatus = listStatus
