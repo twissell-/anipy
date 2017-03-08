@@ -1,3 +1,4 @@
+from . import assert_msg
 
 from anipy import (
     Browser,
@@ -16,7 +17,7 @@ from anipy.ani.enum_ import (
 
 class TestBrowser(object):
 
-    def TestQuery(self):
+    def testQuery(self):
 
         expected = {
             'year': 2014,
@@ -29,8 +30,7 @@ class TestBrowser(object):
             'page': 1
         }
 
-
-        query = Query()
+        query = Query(SeriesType.anime)
         query\
             .year(2014)\
             .season(Season.fall)\
@@ -39,7 +39,12 @@ class TestBrowser(object):
             .sort(SortBy.popularity.desc)\
             .airingData(False).fullPage(False).page(1)
 
-        print(query._query)
-        print(expected)
+        assert query.query == expected, \
+            assert_msg.format(actual=query.query, expected=expected)
+        assert query.serieType == SeriesType.anime, \
+            assert_msg.format(actual=query.serieType, expected=SeriesType.anime)
 
-        assert query._query == expected
+    def testBrowser(self, ):
+
+        browser = Browser()
+        browser.executeQuery(Query(SeriesType.anime))

@@ -15,7 +15,7 @@ from .utils import (
 )
 from .exception import (
     raise_from_response,
-    NotAuthenticatedException
+    AuthenticationException
 )
 
 logger = logging.getLogger(__name__)
@@ -338,9 +338,13 @@ class AuthenticationProvider(object):
 
         :return: Current :any:`Authentication` instance.
         """
+
+        if not cls._instance:
+            raise AuthenticationException('AuthenticationProvider is not instantiated.')
+
         auth = cls._instance._currentAuth
-        if auth is None:
-            raise NotAuthenticatedException('Current authentication is None.')
+        if not auth:
+            raise AuthenticationException('Current authentication is None.')
 
         return auth
 

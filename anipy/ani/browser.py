@@ -46,14 +46,25 @@ class Browser(Resource):
         return type._instance
 
     def executeQuery(self, query):
-        self.get()
+        endpoint = Browser._ENDPOINT + query.serieType.value
+        print(endpoint)
+        self.get(endpoint=endpoint, data=query.query)
 
 
 class Query(object):
     
-    def __init__(self):
+    def __init__(self, serieType):
         self._query = {}
+        self._serieType = serieType
 
+    @property
+    def query(self):
+        return self._query
+    
+    @property
+    def serieType(self):
+        return self._serieType
+    
     @QueryFileld
     def year(self, value):
         self._year = value

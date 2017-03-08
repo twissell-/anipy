@@ -25,7 +25,7 @@ class UnauthorizedException(AniException):
     """Wraps Anilist 'unauthorized' error."""
 
 
-class NotAuthenticatedException(AniException):
+class AuthenticationException(AniException):
     """Some operation that needs authentication was executed without it."""
 
 
