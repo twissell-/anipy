@@ -78,4 +78,14 @@ class SortBy(Enum):
     popularity = 'popularity'
     startDate = 'start_date'
     endDate = 'end_date'
+
+    @property
+    def desc(self):
+        return self.value + '-desc'
+
+    def __str__(self):
+        return self.value
     
+    def __repr__(self):
+        return self.value
+
