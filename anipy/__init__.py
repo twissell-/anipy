@@ -28,7 +28,7 @@ logging.basicConfig(
     format='%(levelname)s - %(name)s ln.%(lineno)d - %(message)s',
     level=logging.INFO)
 
-logging.getLogger('anipy.ani.browser').setLevel(logging.DEBUG)
+logging.getLogger('anipy.ani.browser').setLevel(logging.ERROR)
 
 logging.getLogger('requests').setLevel(logging.WARNING)
 logging.getLogger('urllib3').setLevel(logging.WARNING)

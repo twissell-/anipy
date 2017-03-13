@@ -33,6 +33,8 @@ class User(Entity):
     Object representation of an Anilist User response.
     """
 
+    # TODO: remove unnecessary setters
+
     _userResource = UserResource()
     _animeListResource = AnimeListResource()
 
@@ -56,6 +58,9 @@ class User(Entity):
         self._advancedRating = kwargs.get('advancedRating')
         self._advancedRatingNames = kwargs.get('advancedRatingNames')
         self._notifications = kwargs.get('notifications')
+        self._airingNotifications = kwargs.get('airingNotifications')
+        # TODO: make this an object
+        self._stats = kwargs.get('stats')
 
     @classmethod
     def resource(cls):
@@ -240,7 +245,7 @@ class User(Entity):
         return self._advancedRatingNames
 
     @advancedRatingNames.setter
-    def advancedRating_names(self, advancedRatingNames):
+    def advancedRatingNames(self, advancedRatingNames):
         self._advancedRatingNames = advancedRatingNames
 
     @property
@@ -250,3 +255,15 @@ class User(Entity):
     @notifications.setter
     def notifications(self, notifications):
         self._notifications = notifications
+
+    @property
+    def airingNotifications(self):
+        return self._airingNotifications
+
+    @airingNotifications.setter
+    def airingNotifications(self, airingNotifications):
+        self._airingNotifications = airingNotifications
+
+    @property
+    def stats(self):
+        return self._stats

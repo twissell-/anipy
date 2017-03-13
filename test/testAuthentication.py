@@ -1,34 +1,28 @@
 from urllib3_mock import Responses
-from datetime import datetime
 
 from anipy import (
     AuthenticationProvider,
-    Authentication
 )
 
 import os
 
-from anipy.exception import AniException
-from anipy.exception import InternalServerError
-from anipy.exception import InvalidGrantException
-from anipy.exception import InvalidRequestException
-from anipy.exception import UnauthorizedException
+# from anipy.exception import AniException
+# from anipy.exception import InternalServerError
+# from anipy.exception import InvalidGrantException
+# from anipy.exception import InvalidRequestException
+# from anipy.exception import UnauthorizedException
 
 
 class TestAuthentication(object):
 
     responses = Responses('requests.packages.urllib3')
-    AuthenticationProvider.config(
-        os.environ.get('CLIENT_ID'),
-        os.environ.get('CLIENT_SECRET'),
-        os.environ.get('CLIENT_REDIRECT_URI')
-    )
 
     def testRefreshAuthentication(self):
 
-        auth = Authentication.fromRefreshToken(os.environ.get('REFRESH_TOKEN'))
+        auth = AuthenticationProvider.currentAuth()
 
         assert auth.accessToken
+        assert auth.expires
         assert auth.tokenType == 'Bearer'
         assert auth.expiresIn == 3600
         assert auth.refreshToken == os.environ.get('REFRESH_TOKEN')
